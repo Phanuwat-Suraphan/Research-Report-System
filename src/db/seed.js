@@ -1,6 +1,17 @@
 const db = require('./index');
 const { hashPassword } = require('../lib/auth');
 
+const DEFAULT_SUBJECTS = [
+  'ภาษาไทย',
+  'คณิตศาสตร์',
+  'วิทยาศาสตร์และเทคโนโลยี',
+  'สังคมศึกษา ศาสนา และวัฒนธรรม',
+  'สุขศึกษาและพลศึกษา',
+  'ศิลปะ',
+  'การงานอาชีพ',
+  'ภาษาต่างประเทศ',
+];
+
 const DEMO_USERS = [
   { name: 'ครูสมศรี ใจดี', email: 'teacher@school.ac.th', role: 'teacher', subject_group: 'คณิตศาสตร์', password: 'teacher123' },
   { name: 'หัวหน้ากลุ่มสาระคณิตศาสตร์', email: 'head@school.ac.th', role: 'head', subject_group: 'คณิตศาสตร์', password: 'head1234' },
@@ -30,8 +41,19 @@ function seedDemoUsers() {
   }
 }
 
-if (require.main === module) {
-  seedDemoUsers();
+function seedDefaultSubjects() {
+  const insert = db.prepare('INSERT OR IGNORE INTO subjects (name) VALUES (?)');
+  let created = 0;
+  for (const name of DEFAULT_SUBJECTS) {
+    const result = insert.run(name);
+    if (result.changes > 0) created += 1;
+  }
+  console.log(`Seeded ${created} default subject(s).`);
 }
 
-module.exports = { seedDemoUsers, DEMO_USERS };
+if (require.main === module) {
+  seedDemoUsers();
+  seedDefaultSubjects();
+}
+
+module.exports = { seedDemoUsers, seedDefaultSubjects, DEMO_USERS, DEFAULT_SUBJECTS };

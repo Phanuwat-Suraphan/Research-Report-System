@@ -1,4 +1,4 @@
-const { layout, escapeHtml, nl2br } = require('../lib/render');
+const { layout, escapeHtml, nl2br, csrfField } = require('../lib/render');
 const { REPORT_FIELDS } = require('../lib/fields');
 const { STATUS_LABELS, STAGE_ROLE } = require('../lib/status');
 const { ROLE_LABELS } = require('../lib/auth');
@@ -16,7 +16,7 @@ function canActOn(user, report) {
   return true;
 }
 
-function reportDetailPage({ user, report, attachments, approvals, flash }) {
+function reportDetailPage({ user, report, attachments, approvals, flash, csrfToken }) {
   const fieldsHtml = REPORT_FIELDS.filter((f) => f.key !== 'title' && f.key !== 'subject_area')
     .map(
       (f) => `<div class="field">
@@ -57,6 +57,7 @@ function reportDetailPage({ user, report, attachments, approvals, flash }) {
     actionPanel = `<div class="card">
       <h2>ตรวจสอบและลงนาม</h2>
       <form method="post" action="/reports/${report.id}/decision">
+        ${csrfField(csrfToken)}
         <div class="field">
           <label>ความเห็น (ถ้ามี)</label>
           <textarea name="comment" placeholder="ความเห็นประกอบการพิจารณา"></textarea>
@@ -122,7 +123,7 @@ function reportDetailPage({ user, report, attachments, approvals, flash }) {
     ${timelineHtml}
   </div>`;
 
-  return layout({ title: report.title, user, body, flash });
+  return layout({ title: report.title, user, csrfToken, body, flash });
 }
 
 module.exports = { reportDetailPage, canEdit, canActOn };

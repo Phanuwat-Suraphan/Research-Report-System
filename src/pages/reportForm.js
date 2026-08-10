@@ -1,16 +1,23 @@
-const { layout, escapeHtml } = require('../lib/render');
+const { layout, escapeHtml, csrfField } = require('../lib/render');
 const { REPORT_FIELDS } = require('../lib/fields');
 
-function reportFormPage({ user, report, attachments = [], flash, mode }) {
+function reportFormPage({ user, report, attachments = [], subjects = [], flash, mode, csrfToken }) {
   const isEdit = mode === 'edit';
   const r = report || {};
 
   const fieldsHtml = REPORT_FIELDS.map((f) => {
     const value = r[f.key] || '';
-    const inputHtml =
-      f.type === 'textarea'
-        ? `<textarea name="${f.key}" ${f.required ? 'required' : ''}>${escapeHtml(value)}</textarea>`
-        : `<input type="text" name="${f.key}" value="${escapeHtml(value)}" ${f.required ? 'required' : ''}>`;
+    let inputHtml;
+    if (f.key === 'subject_area') {
+      const options = subjects
+        .map((s) => `<option value="${escapeHtml(s.name)}" ${value === s.name ? 'selected' : ''}>${escapeHtml(s.name)}</option>`)
+        .join('');
+      inputHtml = `<select name="${f.key}" required><option value="">— เลือกกลุ่มสาระ —</option>${options}</select>`;
+    } else if (f.type === 'textarea') {
+      inputHtml = `<textarea name="${f.key}" ${f.required ? 'required' : ''}>${escapeHtml(value)}</textarea>`;
+    } else {
+      inputHtml = `<input type="text" name="${f.key}" value="${escapeHtml(value)}" ${f.required ? 'required' : ''}>`;
+    }
     return `<div class="field" style="${f.full ? 'grid-column: 1 / -1;' : ''}">
       <label>${escapeHtml(f.label)}${f.required ? ' *' : ''}</label>
       ${inputHtml}
@@ -27,6 +34,7 @@ function reportFormPage({ user, report, attachments = [], flash, mode }) {
   <h1>${isEdit ? 'แก้ไขรายงาน' : 'สร้างรายงานวิจัย/นวัตกรรมใหม่'}</h1>
   ${r.status === 'returned' && r.return_comment ? `<div class="flash flash-error"><strong>ข้อเสนอแนะจากผู้ตรวจ:</strong> ${escapeHtml(r.return_comment)}</div>` : ''}
   <form method="post" action="${isEdit ? `/reports/${r.id}` : '/reports'}" enctype="multipart/form-data">
+    ${csrfField(csrfToken)}
     <div class="card">
       <div class="grid-2">
         ${fieldsHtml}
@@ -47,7 +55,7 @@ function reportFormPage({ user, report, attachments = [], flash, mode }) {
     </div>
   </form>`;
 
-  return layout({ title: isEdit ? 'แก้ไขรายงาน' : 'สร้างรายงานใหม่', user, body, flash });
+  return layout({ title: isEdit ? 'แก้ไขรายงาน' : 'สร้างรายงานใหม่', user, csrfToken, body, flash });
 }
 
 module.exports = { reportFormPage };

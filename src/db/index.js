@@ -20,8 +20,14 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS sessions (
   token TEXT PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  csrf_token TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   expires_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS subjects (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS reports (
@@ -78,5 +84,12 @@ CREATE TABLE IF NOT EXISTS approvals (
   revoked_at TEXT
 );
 `);
+
+// Migration guard for databases created before csrf_token existed.
+try {
+  db.exec('ALTER TABLE sessions ADD COLUMN csrf_token TEXT NOT NULL DEFAULT \'\'');
+} catch {
+  // column already present
+}
 
 module.exports = db;

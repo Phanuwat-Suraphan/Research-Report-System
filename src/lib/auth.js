@@ -18,16 +18,19 @@ function verifyPassword(password, salt, expectedHash) {
 
 function createSession(userId) {
   const token = crypto.randomBytes(32).toString('hex');
+  const csrfToken = crypto.randomBytes(24).toString('hex');
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS).toISOString();
-  db.prepare('INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)').run(token, userId, expiresAt);
-  return { token, expiresAt };
+  db.prepare('INSERT INTO sessions (token, user_id, csrf_token, expires_at) VALUES (?, ?, ?, ?)').run(token, userId, csrfToken, expiresAt);
+  return { token, csrfToken, expiresAt };
 }
 
 function destroySession(token) {
   db.prepare('DELETE FROM sessions WHERE token = ?').run(token);
 }
 
-function getUserByToken(token) {
+// Resolves a session cookie value into the logged-in user plus that
+// session's CSRF token, or null if the cookie is missing/expired.
+function getSessionContext(token) {
   if (!token) return null;
   const session = db.prepare('SELECT * FROM sessions WHERE token = ?').get(token);
   if (!session) return null;
@@ -35,7 +38,9 @@ function getUserByToken(token) {
     destroySession(token);
     return null;
   }
-  return db.prepare('SELECT * FROM users WHERE id = ?').get(session.user_id);
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(session.user_id);
+  if (!user) return null;
+  return { user, csrfToken: session.csrf_token };
 }
 
 const ROLE_LABELS = {
@@ -51,6 +56,6 @@ module.exports = {
   verifyPassword,
   createSession,
   destroySession,
-  getUserByToken,
+  getSessionContext,
   ROLE_LABELS,
 };

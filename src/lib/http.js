@@ -1,3 +1,22 @@
+// Behind a reverse proxy (Render, or any PaaS) req.socket.remoteAddress is
+// the proxy's own address for every request, which would collapse the login
+// rate limiter and the approval audit trail onto one shared IP for all
+// users. Trusting X-Forwarded-For fixes that — but only holds because this
+// app is meant to run behind such a proxy. If it is ever exposed directly
+// to the internet, this header becomes client-controlled and must not be
+// trusted; set TRUST_PROXY=false in that case to fall back to the socket
+// address.
+function getClientIp(req) {
+  if (process.env.TRUST_PROXY !== 'false') {
+    const xff = req.headers['x-forwarded-for'];
+    if (xff) {
+      const first = xff.split(',')[0].trim();
+      if (first) return first;
+    }
+  }
+  return req.socket.remoteAddress || '';
+}
+
 function parseCookies(req) {
   const header = req.headers.cookie;
   const cookies = {};
@@ -142,6 +161,7 @@ function redirect(res, location, extraHeaders = {}) {
 }
 
 module.exports = {
+  getClientIp,
   parseCookies,
   serializeCookie,
   readBody,

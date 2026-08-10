@@ -1,6 +1,6 @@
 const http = require('node:http');
 const db = require('./src/db');
-const { seedDemoUsers } = require('./src/db/seed');
+const { seedDemoUsers, seedDefaultSubjects } = require('./src/db/seed');
 const { handleRequest } = require('./src/app');
 
 const PORT = process.env.PORT || 3000;
@@ -12,6 +12,14 @@ const PORT = process.env.PORT || 3000;
 const userCount = db.prepare('SELECT COUNT(*) AS c FROM users').get().c;
 if (userCount === 0 && process.env.AUTO_SEED_DEMO !== 'false') {
   seedDemoUsers();
+}
+
+// Seeded independently of users so an existing deployment upgrading to a
+// version with a controlled subject list still gets sensible defaults
+// instead of an empty dropdown.
+const subjectCount = db.prepare('SELECT COUNT(*) AS c FROM subjects').get().c;
+if (subjectCount === 0 && process.env.AUTO_SEED_DEMO !== 'false') {
+  seedDefaultSubjects();
 }
 
 const server = http.createServer((req, res) => {

@@ -6,7 +6,15 @@ function statusBadge(status) {
   return `<span class="badge badge-${status}">${escapeHtml(STATUS_LABELS[status] || status)}</span>`;
 }
 
-function dashboardPage({ user, reports, filters, flash }) {
+function statsPanel(stats) {
+  if (!stats) return '';
+  const tiles = Object.entries(STATUS_LABELS)
+    .map(([k, label]) => `<div class="stat-tile">${statusBadge(k)}<div class="stat-count">${stats[k] || 0}</div><div class="stat-label">${escapeHtml(label)}</div></div>`)
+    .join('');
+  return `<div class="card"><div class="stats-row">${tiles}</div></div>`;
+}
+
+function dashboardPage({ user, reports, filters, stats, flash, csrfToken }) {
   const rows = reports
     .map(
       (r) => `<tr>
@@ -24,6 +32,7 @@ function dashboardPage({ user, reports, filters, flash }) {
   const f = filters || {};
   const body = `
   <h1>แดชบอร์ด — ${escapeHtml(ROLE_LABELS[user.role])}</h1>
+  ${statsPanel(stats)}
   <div class="card">
     <form class="filters" method="get" action="/">
       <input type="text" name="q" placeholder="ค้นหาชื่อเรื่อง" value="${escapeHtml(f.q || '')}">
@@ -47,7 +56,7 @@ function dashboardPage({ user, reports, filters, flash }) {
     </table>`}
   </div>`;
 
-  return layout({ title: 'แดชบอร์ด', user, body, flash });
+  return layout({ title: 'แดชบอร์ด', user, csrfToken, body, flash });
 }
 
 module.exports = { dashboardPage, statusBadge };

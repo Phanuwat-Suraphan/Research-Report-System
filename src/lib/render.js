@@ -16,9 +16,15 @@ const NAV_ITEMS = [
   { href: '/', label: 'แดชบอร์ด', roles: ['teacher', 'head', 'academic', 'director', 'admin'] },
   { href: '/reports/new', label: 'สร้างรายงานใหม่', roles: ['teacher'] },
   { href: '/admin/users', label: 'จัดการผู้ใช้', roles: ['admin'] },
+  { href: '/admin/subjects', label: 'จัดการกลุ่มสาระ', roles: ['admin'] },
+  { href: '/account/password', label: 'เปลี่ยนรหัสผ่าน', roles: ['teacher', 'head', 'academic', 'director', 'admin'] },
 ];
 
-function layout({ title, user, body, flash }) {
+function csrfField(csrfToken) {
+  return `<input type="hidden" name="_csrf" value="${escapeHtml(csrfToken || '')}">`;
+}
+
+function layout({ title, user, csrfToken, body, flash }) {
   const nav = user
     ? NAV_ITEMS.filter((item) => item.roles.includes(user.role))
         .map((item) => `<a class="navlink" href="${item.href}">${escapeHtml(item.label)}</a>`)
@@ -26,7 +32,7 @@ function layout({ title, user, body, flash }) {
     : '';
 
   const userBox = user
-    ? `<div class="userbox"><span>${escapeHtml(user.name)}</span><form method="post" action="/logout" style="display:inline"><button class="linkbtn" type="submit">ออกจากระบบ</button></form></div>`
+    ? `<div class="userbox"><span>${escapeHtml(user.name)}</span><form method="post" action="/logout" style="display:inline">${csrfField(csrfToken)}<button class="linkbtn" type="submit">ออกจากระบบ</button></form></div>`
     : '';
 
   const flashHtml = flash ? `<div class="flash flash-${flash.type}">${escapeHtml(flash.message)}</div>` : '';
@@ -54,4 +60,4 @@ ${body}
 </html>`;
 }
 
-module.exports = { escapeHtml, nl2br, layout };
+module.exports = { escapeHtml, nl2br, layout, csrfField };

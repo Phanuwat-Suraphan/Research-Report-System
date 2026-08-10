@@ -149,6 +149,11 @@ tr:hover td { background: #fafbfc; }
 .badge-approved { background: #e8f5e9; color: var(--color-success); }
 .badge-returned { background: #fdecea; color: var(--color-danger); }
 
+.stats-row { display: flex; flex-wrap: wrap; gap: 14px; }
+.stat-tile { flex: 1; min-width: 120px; text-align: center; }
+.stat-count { font-size: 1.5rem; font-weight: 700; margin-top: 6px; }
+.stat-label { font-size: 0.78rem; color: var(--color-muted); }
+
 .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
 .filters input, .filters select { width: auto; min-width: 140px; }
 

@@ -3,20 +3,24 @@ const fs = require('node:fs');
 const { URL } = require('node:url');
 
 const db = require('./db');
-const { hashPassword, verifyPassword, createSession, destroySession, getUserByToken, ROLE_LABELS } = require('./lib/auth');
-const { parseCookies, serializeCookie, parseRequestBody, sendHtml, redirect } = require('./lib/http');
+const { hashPassword, verifyPassword, createSession, destroySession, getSessionContext, ROLE_LABELS } = require('./lib/auth');
+const { getClientIp, parseCookies, serializeCookie, parseRequestBody, sendHtml, redirect } = require('./lib/http');
 const { serveFromDir } = require('./lib/static');
 const { saveUploadedFiles, UPLOAD_DIR } = require('./lib/uploads');
-const { STAGE_ROLE, NEXT_STATUS } = require('./lib/status');
+const { STAGE_ROLE, NEXT_STATUS, STATUS_LABELS } = require('./lib/status');
 const { REPORT_FIELDS } = require('./lib/fields');
 const { buildLockedHtml, hashContent } = require('./lib/lockedDocument');
 const { LOCKED_DIR } = require('./lib/paths');
+const { verifyCsrf } = require('./lib/csrf');
+const { isLocked, recordFailure, resetAttempts, MAX_ATTEMPTS } = require('./lib/rateLimit');
 
 const { loginPage } = require('./pages/login');
 const { dashboardPage } = require('./pages/dashboard');
 const { reportFormPage } = require('./pages/reportForm');
 const { reportDetailPage, canEdit, canActOn } = require('./pages/reportDetail');
 const { adminUsersPage } = require('./pages/adminUsers');
+const { adminSubjectsPage } = require('./pages/adminSubjects');
+const { changePasswordPage } = require('./pages/changePassword');
 
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 
@@ -85,6 +89,28 @@ function loadApprovals(reportId) {
     .all(reportId);
 }
 
+function loadSubjects() {
+  return db.prepare('SELECT * FROM subjects ORDER BY name').all();
+}
+
+// Scope clause shared by the dashboard list and its stats panel so the
+// counts always match what the viewer can actually see.
+function scopeClause(user) {
+  if (user.role === 'teacher') return { clause: 'reports.teacher_id = ?', params: [user.id] };
+  if (user.role === 'head') return { clause: 'reports.subject_area = ?', params: [user.subject_group] };
+  return null;
+}
+
+function loadStatusStats(user) {
+  const scope = scopeClause(user);
+  const where = scope ? `WHERE ${scope.clause}` : '';
+  const rows = db.prepare(`SELECT status, COUNT(*) AS c FROM reports ${where} GROUP BY status`).all(...(scope ? scope.params : []));
+  const stats = {};
+  for (const s of Object.keys(STATUS_LABELS)) stats[s] = 0;
+  for (const row of rows) stats[row.status] = row.c;
+  return stats;
+}
+
 const routes = [];
 function on(method, path, handler) {
   routes.push({ method, path, handler });
@@ -97,13 +123,25 @@ on('GET', '/login', (ctx) => {
   sendHtml(ctx.res, 200, loginPage({ flash: ctx.flash }));
 });
 
-on('POST', '/login', async (ctx) => {
-  const { fields } = await parseRequestBody(ctx.req);
+on('POST', '/login', (ctx) => {
+  const fields = ctx.fields;
   const email = (fields.email || '').trim().toLowerCase();
+  const ip = getClientIp(ctx.req);
+
+  if (email && isLocked(email, ip)) {
+    return sendHtml(
+      ctx.res,
+      429,
+      loginPage({ flash: { type: 'error', message: `พยายามเข้าสู่ระบบผิดพลาดเกิน ${MAX_ATTEMPTS} ครั้ง กรุณาลองใหม่ภายหลัง 15 นาที` }, email })
+    );
+  }
+
   const user = db.prepare('SELECT * FROM users WHERE lower(email) = ?').get(email);
   if (!user || !verifyPassword(fields.password || '', user.password_salt, user.password_hash)) {
+    if (email) recordFailure(email, ip);
     return sendHtml(ctx.res, 401, loginPage({ flash: { type: 'error', message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' }, email }));
   }
+  resetAttempts(email, ip);
   const { token, expiresAt } = createSession(user.id);
   redirect(ctx.res, '/', { 'Set-Cookie': serializeCookie('session', token, { expires: new Date(expiresAt) }) });
 });
@@ -112,6 +150,28 @@ on('POST', '/logout', (ctx) => {
   const token = ctx.cookies.session;
   if (token) destroySession(token);
   redirect(ctx.res, '/login', { 'Set-Cookie': serializeCookie('session', '', { maxAge: 0 }) });
+});
+
+// ---------- Account ----------
+
+on('GET', '/account/password', (ctx) => {
+  sendHtml(ctx.res, 200, changePasswordPage({ user: ctx.user, flash: ctx.flash, csrfToken: ctx.csrfToken }));
+});
+
+on('POST', '/account/password', (ctx) => {
+  const { current_password: current, new_password: next, confirm_password: confirm } = ctx.fields;
+  if (!verifyPassword(current || '', ctx.user.password_salt, ctx.user.password_hash)) {
+    return redirect(ctx.res, withFlash('/account/password', 'error', 'รหัสผ่านปัจจุบันไม่ถูกต้อง'));
+  }
+  if (!next || next.length < 8) {
+    return redirect(ctx.res, withFlash('/account/password', 'error', 'รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร'));
+  }
+  if (next !== confirm) {
+    return redirect(ctx.res, withFlash('/account/password', 'error', 'การยืนยันรหัสผ่านใหม่ไม่ตรงกัน'));
+  }
+  const { hash, salt } = hashPassword(next);
+  db.prepare('UPDATE users SET password_hash = ?, password_salt = ? WHERE id = ?').run(hash, salt, ctx.user.id);
+  redirect(ctx.res, withFlash('/account/password', 'success', 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว'));
 });
 
 // ---------- Dashboard ----------
@@ -127,16 +187,9 @@ on('GET', '/', (ctx) => {
     status: url.searchParams.get('status') || '',
   };
 
-  const clauses = [];
-  const params = [];
-
-  if (user.role === 'teacher') {
-    clauses.push('reports.teacher_id = ?');
-    params.push(user.id);
-  } else if (user.role === 'head') {
-    clauses.push('reports.subject_area = ?');
-    params.push(user.subject_group);
-  }
+  const scope = scopeClause(user);
+  const clauses = scope ? [scope.clause] : [];
+  const params = scope ? [...scope.params] : [];
 
   if (filters.q) {
     clauses.push('reports.title LIKE ?');
@@ -169,21 +222,34 @@ on('GET', '/', (ctx) => {
     )
     .all(...params);
 
-  sendHtml(ctx.res, 200, dashboardPage({ user, reports, filters, flash: ctx.flash }));
+  const stats = loadStatusStats(user);
+
+  sendHtml(ctx.res, 200, dashboardPage({ user, reports, filters, stats, flash: ctx.flash, csrfToken: ctx.csrfToken }));
 });
 
 // ---------- Report create/edit ----------
 
 on('GET', '/reports/new', (ctx) => {
   if (ctx.user.role !== 'teacher') return redirect(ctx.res, withFlash('/', 'error', 'เฉพาะครูผู้จัดทำเท่านั้นที่สร้างรายงานได้'));
-  sendHtml(ctx.res, 200, reportFormPage({ user: ctx.user, mode: 'create', flash: ctx.flash }));
+  sendHtml(ctx.res, 200, reportFormPage({ user: ctx.user, mode: 'create', subjects: loadSubjects(), flash: ctx.flash, csrfToken: ctx.csrfToken }));
 });
 
-on('POST', '/reports', async (ctx) => {
+on('POST', '/reports', (ctx) => {
   if (ctx.user.role !== 'teacher') return redirect(ctx.res, withFlash('/', 'error', 'ไม่มีสิทธิ์'));
-  const { fields, files } = await parseRequestBody(ctx.req);
+  const { fields, files } = ctx;
   if (!fields.title || !fields.subject_area) {
-    return sendHtml(ctx.res, 400, reportFormPage({ user: ctx.user, mode: 'create', report: fields, flash: { type: 'error', message: 'กรุณากรอกชื่อเรื่องและกลุ่มสาระ' } }));
+    return sendHtml(
+      ctx.res,
+      400,
+      reportFormPage({
+        user: ctx.user,
+        mode: 'create',
+        report: fields,
+        subjects: loadSubjects(),
+        csrfToken: ctx.csrfToken,
+        flash: { type: 'error', message: 'กรุณากรอกชื่อเรื่องและกลุ่มสาระ' },
+      })
+    );
   }
   const isSubmit = fields.action === 'submit';
   const cols = REPORT_FIELDS.map((f) => f.key);
@@ -210,15 +276,19 @@ on('GET', '/reports/:id/edit', (ctx) => {
   if (!report) return notFoundPage(ctx);
   if (!canEdit(ctx.user, report)) return redirect(ctx.res, withFlash(`/reports/${report.id}`, 'error', 'ไม่สามารถแก้ไขรายงานนี้ได้'));
   const attachments = loadAttachments(report.id);
-  sendHtml(ctx.res, 200, reportFormPage({ user: ctx.user, mode: 'edit', report, attachments, flash: ctx.flash }));
+  sendHtml(
+    ctx.res,
+    200,
+    reportFormPage({ user: ctx.user, mode: 'edit', report, attachments, subjects: loadSubjects(), flash: ctx.flash, csrfToken: ctx.csrfToken })
+  );
 });
 
-on('POST', '/reports/:id', async (ctx) => {
+on('POST', '/reports/:id', (ctx) => {
   const report = loadReportWithTeacher(ctx.params.id);
   if (!report) return notFoundPage(ctx);
   if (!canEdit(ctx.user, report)) return redirect(ctx.res, withFlash(`/reports/${report.id}`, 'error', 'ไม่สามารถแก้ไขรายงานนี้ได้'));
 
-  const { fields, files } = await parseRequestBody(ctx.req);
+  const { fields, files } = ctx;
   const isSubmit = fields.action === 'submit';
   const wasReturned = report.status === 'returned';
   const now = new Date().toISOString();
@@ -258,16 +328,16 @@ on('GET', '/reports/:id', (ctx) => {
   if (!canView(ctx.user, report)) return forbiddenPage(ctx);
   const attachments = loadAttachments(report.id);
   const approvals = loadApprovals(report.id);
-  sendHtml(ctx.res, 200, reportDetailPage({ user: ctx.user, report, attachments, approvals, flash: ctx.flash }));
+  sendHtml(ctx.res, 200, reportDetailPage({ user: ctx.user, report, attachments, approvals, flash: ctx.flash, csrfToken: ctx.csrfToken }));
 });
 
-on('POST', '/reports/:id/decision', async (ctx) => {
+on('POST', '/reports/:id/decision', (ctx) => {
   const report = loadReportWithTeacher(ctx.params.id);
   if (!report) return notFoundPage(ctx);
   if (!canActOn(ctx.user, report)) return redirect(ctx.res, withFlash(`/reports/${report.id}`, 'error', 'ไม่มีสิทธิ์ดำเนินการในขั้นตอนนี้'));
 
-  const { fields } = await parseRequestBody(ctx.req);
-  const ip = ctx.req.socket.remoteAddress || '';
+  const { fields } = ctx;
+  const ip = getClientIp(ctx.req);
   const now = new Date().toISOString();
 
   if (fields.decision === 'approve') {
@@ -344,17 +414,17 @@ on('GET', '/uploads/:filename', (ctx) => {
   serveFromDir(ctx.res, UPLOAD_DIR, attachment.stored_name, { download: attachment.file_name });
 });
 
-// ---------- Admin ----------
+// ---------- Admin: users ----------
 
 on('GET', '/admin/users', (ctx) => {
   if (ctx.user.role !== 'admin') return forbiddenPage(ctx);
   const users = db.prepare('SELECT * FROM users ORDER BY role, name').all();
-  sendHtml(ctx.res, 200, adminUsersPage({ user: ctx.user, users, flash: ctx.flash }));
+  sendHtml(ctx.res, 200, adminUsersPage({ user: ctx.user, users, subjects: loadSubjects(), flash: ctx.flash, csrfToken: ctx.csrfToken }));
 });
 
-on('POST', '/admin/users', async (ctx) => {
+on('POST', '/admin/users', (ctx) => {
   if (ctx.user.role !== 'admin') return forbiddenPage(ctx);
-  const { fields } = await parseRequestBody(ctx.req);
+  const { fields } = ctx;
   const email = (fields.email || '').trim().toLowerCase();
   if (!fields.name || !email || !fields.role || !fields.password) {
     return redirect(ctx.res, withFlash('/admin/users', 'error', 'กรุณากรอกข้อมูลให้ครบถ้วน'));
@@ -372,6 +442,31 @@ on('POST', '/admin/users', async (ctx) => {
     fields.subject_group || null
   );
   redirect(ctx.res, withFlash('/admin/users', 'success', 'เพิ่มผู้ใช้เรียบร้อยแล้ว'));
+});
+
+// ---------- Admin: subjects ----------
+
+on('GET', '/admin/subjects', (ctx) => {
+  if (ctx.user.role !== 'admin') return forbiddenPage(ctx);
+  sendHtml(ctx.res, 200, adminSubjectsPage({ user: ctx.user, subjects: loadSubjects(), flash: ctx.flash, csrfToken: ctx.csrfToken }));
+});
+
+on('POST', '/admin/subjects', (ctx) => {
+  if (ctx.user.role !== 'admin') return forbiddenPage(ctx);
+  const name = (ctx.fields.name || '').trim();
+  if (!name) return redirect(ctx.res, withFlash('/admin/subjects', 'error', 'กรุณาระบุชื่อกลุ่มสาระ'));
+  try {
+    db.prepare('INSERT INTO subjects (name) VALUES (?)').run(name);
+  } catch {
+    return redirect(ctx.res, withFlash('/admin/subjects', 'error', 'มีกลุ่มสาระนี้อยู่แล้ว'));
+  }
+  redirect(ctx.res, withFlash('/admin/subjects', 'success', 'เพิ่มกลุ่มสาระเรียบร้อยแล้ว'));
+});
+
+on('POST', '/admin/subjects/:id/delete', (ctx) => {
+  if (ctx.user.role !== 'admin') return forbiddenPage(ctx);
+  db.prepare('DELETE FROM subjects WHERE id = ?').run(ctx.params.id);
+  redirect(ctx.res, withFlash('/admin/subjects', 'success', 'ลบกลุ่มสาระเรียบร้อยแล้ว'));
 });
 
 // ---------- Error pages ----------
@@ -394,7 +489,9 @@ async function handleRequest(req, res) {
   }
 
   const cookies = parseCookies(req);
-  const user = getUserByToken(cookies.session);
+  const session = getSessionContext(cookies.session);
+  const user = session ? session.user : null;
+  const csrfToken = session ? session.csrfToken : null;
 
   if (!user && !PUBLIC_ROUTES.has(pathname)) {
     return redirect(res, '/login');
@@ -404,8 +501,20 @@ async function handleRequest(req, res) {
     if (route.method !== req.method) continue;
     const params = matchRoute(route.path, pathname);
     if (!params) continue;
-    const ctx = { req, res, url, params, cookies, user, flash: readFlash(url) };
+    const ctx = { req, res, url, params, cookies, user, csrfToken, flash: readFlash(url) };
     try {
+      if (req.method === 'POST') {
+        const { fields, files } = await parseRequestBody(req);
+        ctx.fields = fields;
+        ctx.files = files;
+        if (pathname !== '/login' && !verifyCsrf(csrfToken, fields._csrf)) {
+          return sendHtml(
+            res,
+            403,
+            `<h1>403</h1><p>คำขอไม่ถูกต้อง (CSRF token ไม่ตรงกันหรือหมดอายุ) กรุณาโหลดหน้าใหม่แล้วลองอีกครั้ง</p><a href="/">กลับหน้าหลัก</a>`
+          );
+        }
+      }
       await route.handler(ctx);
     } catch (err) {
       console.error(err);
