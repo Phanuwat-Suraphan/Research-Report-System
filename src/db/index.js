@@ -1,7 +1,5 @@
-const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
-
-const DB_PATH = path.join(__dirname, '..', '..', 'data', 'app.db');
+const { DB_PATH } = require('../lib/paths');
 
 const db = new DatabaseSync(DB_PATH);
 

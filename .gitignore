@@ -1,9 +1,5 @@
 node_modules/
-data/*.db
-data/*.db-journal
-data/*.db-wal
-data/locked/
-uploads/*
-!uploads/.gitkeep
+data/
+!data/.gitkeep
 *.log
 .env

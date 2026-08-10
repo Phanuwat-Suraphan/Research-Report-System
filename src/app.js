@@ -10,6 +10,7 @@ const { saveUploadedFiles, UPLOAD_DIR } = require('./lib/uploads');
 const { STAGE_ROLE, NEXT_STATUS } = require('./lib/status');
 const { REPORT_FIELDS } = require('./lib/fields');
 const { buildLockedHtml, hashContent } = require('./lib/lockedDocument');
+const { LOCKED_DIR } = require('./lib/paths');
 
 const { loginPage } = require('./pages/login');
 const { dashboardPage } = require('./pages/dashboard');
@@ -18,8 +19,6 @@ const { reportDetailPage, canEdit, canActOn } = require('./pages/reportDetail');
 const { adminUsersPage } = require('./pages/adminUsers');
 
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
-const LOCKED_DIR = path.join(__dirname, '..', 'data', 'locked');
-fs.mkdirSync(LOCKED_DIR, { recursive: true });
 
 function withFlash(location, type, message) {
   const url = new URL(location, 'http://internal');

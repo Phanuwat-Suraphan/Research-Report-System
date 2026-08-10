@@ -9,7 +9,7 @@ const DEMO_USERS = [
   { name: 'ผู้ดูแลระบบ', email: 'admin@school.ac.th', role: 'admin', subject_group: null, password: 'admin1234' },
 ];
 
-function seed() {
+function seedDemoUsers() {
   const insert = db.prepare(
     'INSERT INTO users (name, email, password_hash, password_salt, role, subject_group) VALUES (?, ?, ?, ?, ?, ?)'
   );
@@ -30,4 +30,8 @@ function seed() {
   }
 }
 
-seed();
+if (require.main === module) {
+  seedDemoUsers();
+}
+
+module.exports = { seedDemoUsers, DEMO_USERS };

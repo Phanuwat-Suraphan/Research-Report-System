@@ -1,8 +1,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { UPLOAD_DIR } = require('./paths');
 
-const UPLOAD_DIR = path.join(__dirname, '..', '..', 'uploads');
 const ALLOWED_EXT = new Set(['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png']);
 const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB per file
 
