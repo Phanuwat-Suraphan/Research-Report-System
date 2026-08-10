@@ -1,0 +1,15 @@
+{
+  "name": "research-report-system",
+  "version": "1.0.0",
+  "description": "ระบบรายงานผลการวิจัยในชั้นเรียนและนวัตกรรมครูแบบดิจิทัล",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node src/db/seed.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {}
+}
