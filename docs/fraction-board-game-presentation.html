@@ -1,0 +1,585 @@
+<title>ผจญภัยเกาะเศษส่วน — สไลด์นำเสนอ</title>
+<style>
+  :root{
+    --bg:#FAF7F0;
+    --surface:#FFFFFF;
+    --surface-2:#F1EBDD;
+    --text:#1B2B2B;
+    --text-muted:#5B6B68;
+    --accent:#0E6E6E;
+    --accent-ink:#083E3E;
+    --gold:#B8862E;
+    --coral:#C2542E;
+    --border:rgba(14,110,110,0.16);
+    --shadow:0 1px 2px rgba(20,40,40,.06), 0 8px 24px rgba(20,40,40,.06);
+    --dark-bg:#0B1A1A;
+    --dark-surface:#12262A;
+    --dark-text:#EAF3F1;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0B1A1A;
+      --surface:#12262A;
+      --surface-2:#173234;
+      --text:#EAF3F1;
+      --text-muted:#9FB8B5;
+      --accent:#5FDBCB;
+      --accent-ink:#CFF3EC;
+      --gold:#E8B84B;
+      --coral:#F2795C;
+      --border:rgba(95,219,203,0.22);
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0B1A1A;
+    --surface:#12262A;
+    --surface-2:#173234;
+    --text:#EAF3F1;
+    --text-muted:#9FB8B5;
+    --accent:#5FDBCB;
+    --accent-ink:#CFF3EC;
+    --gold:#E8B84B;
+    --coral:#F2795C;
+    --border:rgba(95,219,203,0.22);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Sarabun','Noto Sans Thai','Leelawadee UI','Tahoma',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .deck{
+    max-width:1180px;
+    margin:0 auto;
+    padding:28px 20px 120px;
+  }
+  .slide{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    box-shadow:var(--shadow);
+    aspect-ratio:16/9;
+    width:100%;
+    margin:0 0 34px;
+    padding:52px 64px;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    gap:18px;
+    scroll-margin-top:24px;
+    position:relative;
+    overflow:hidden;
+  }
+  .slide.cover, .slide.closing{
+    background:linear-gradient(160deg,var(--accent-ink),var(--accent) 130%);
+    color:#F4FBF9;
+    justify-content:center;
+    align-items:flex-start;
+    text-align:left;
+  }
+  .slide.cover *, .slide.closing *{color:inherit;}
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .slide.cover .eyebrow, .slide.closing .eyebrow{color:#CFEFE9;}
+  .eyebrow .num{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:24px;height:24px;
+    border-radius:50%;
+    background:var(--accent);
+    color:var(--surface);
+    font-size:11px;
+  }
+  .slide.cover .eyebrow .num, .slide.closing .eyebrow .num{background:#F4FBF9;color:var(--accent-ink);}
+  h1{
+    font-size:26px;
+    line-height:1.25;
+    margin:0;
+    font-weight:800;
+    text-wrap:balance;
+  }
+  .slide.cover h1{font-size:52px;}
+  .slide.closing h1{font-size:34px;}
+  h2.lead{
+    font-size:16px;
+    font-weight:600;
+    color:var(--text-muted);
+    margin:0;
+    max-width:62ch;
+  }
+  .slide.cover h2.lead, .slide.closing h2.lead{color:#DFF4EF;}
+  p{line-height:1.65;margin:0;}
+  .body-text{max-width:64ch;font-size:15px;color:var(--text);}
+  .content{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+  .card{
+    background:var(--surface-2);
+    border-radius:10px;
+    padding:18px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .card h3{margin:0;font-size:15px;font-weight:700;}
+  .card p{font-size:13.5px;color:var(--text-muted);}
+  .icon-badge{
+    width:34px;height:34px;border-radius:50%;
+    background:var(--accent);color:var(--surface);
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px;font-weight:700;flex-shrink:0;
+  }
+  ul.plain{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;}
+  ul.plain li{display:flex;gap:10px;align-items:flex-start;font-size:14px;}
+  ul.plain li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:7px;flex-shrink:0;}
+  table.deck-table{width:100%;border-collapse:collapse;font-size:13px;}
+  table.deck-table th{
+    text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--text-muted);font-weight:700;padding:0 10px 8px;border-bottom:1px solid var(--border);
+  }
+  table.deck-table td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+  table.deck-table tr:last-child td{border-bottom:none;}
+  .stat-row{display:flex;gap:20px;}
+  .stat{
+    flex:1;background:var(--surface-2);border-radius:10px;padding:20px 16px;text-align:left;
+  }
+  .stat .num{font-size:34px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1;}
+  .stat .label{font-size:12.5px;color:var(--text-muted);margin-top:6px;}
+  .flow{display:flex;align-items:stretch;gap:0;}
+  .flow .step{
+    flex:1;background:var(--surface-2);border-radius:10px;padding:16px;font-size:13px;position:relative;
+  }
+  .flow .step .n{font-size:11px;color:var(--accent);font-weight:800;letter-spacing:.06em;}
+  .flow .arrow{display:flex;align-items:center;justify-content:center;width:28px;color:var(--text-muted);font-size:16px;}
+  .callout{
+    border-radius:10px;
+    padding:16px 20px;
+    font-size:13.5px;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    background:color-mix(in srgb, var(--coral) 12%, var(--surface));
+    border:1px solid color-mix(in srgb, var(--coral) 35%, transparent);
+  }
+  .callout .mark{color:var(--coral);font-weight:800;flex-shrink:0;}
+  .callout b{color:var(--coral);}
+  .pill{
+    display:inline-flex;align-items:center;padding:4px 11px;border-radius:999px;
+    font-size:11.5px;font-weight:700;background:var(--surface-2);color:var(--text);
+  }
+  .pill.gold{background:color-mix(in srgb, var(--gold) 18%, var(--surface));color:var(--gold);}
+  .pill.accent{background:color-mix(in srgb, var(--accent) 16%, var(--surface));color:var(--accent);}
+  .frac{display:inline-flex;flex-direction:column;align-items:center;line-height:1;vertical-align:middle;margin:0 3px;font-variant-numeric:tabular-nums;}
+  .frac span{padding:1px 4px;}
+  .frac .n{border-bottom:1.6px solid currentColor;}
+  .zone-map{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12.5px;}
+  .zone-chip{
+    padding:8px 12px;border-radius:8px;background:var(--surface-2);font-weight:700;text-align:center;min-width:86px;
+  }
+  .zone-chip small{display:block;font-weight:500;color:var(--text-muted);font-size:10.5px;margin-top:2px;}
+  .zone-arrow{color:var(--text-muted);font-size:14px;}
+  .foot{
+    position:absolute;bottom:20px;right:64px;font-size:11px;color:var(--text-muted);
+    font-variant-numeric:tabular-nums;
+  }
+  .slide.cover .foot, .slide.closing .foot{color:#CFEFE9;}
+  .kv{display:flex;flex-direction:column;gap:4px;}
+  .kv .k{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;}
+  .kv .v{font-size:14px;font-weight:600;}
+  .nav{
+    position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+    display:flex;gap:8px;background:var(--surface);border:1px solid var(--border);
+    border-radius:999px;padding:8px 10px;box-shadow:var(--shadow);z-index:10;align-items:center;
+  }
+  .nav button{
+    border:none;background:transparent;color:var(--text);cursor:pointer;font-size:13px;
+    padding:6px 10px;border-radius:999px;font-family:inherit;
+  }
+  .nav button:hover{background:var(--surface-2);}
+  .nav .count{font-size:12px;color:var(--text-muted);font-variant-numeric:tabular-nums;padding:0 4px;}
+  @media print{
+    body{background:#fff;}
+    .nav{display:none;}
+    .deck{padding:0;max-width:none;}
+    .slide{
+      box-shadow:none;border:none;border-radius:0;
+      aspect-ratio:auto;width:100vw;height:100vh;
+      page-break-after:always;margin:0;padding:40px 56px;
+    }
+  }
+  @media (max-width:820px){
+    .slide{aspect-ratio:auto;padding:34px 26px;}
+    .grid-2{grid-template-columns:1fr;}
+    .stat-row{flex-direction:column;}
+    .flow{flex-direction:column;}
+    .flow .arrow{transform:rotate(90deg);}
+  }
+</style>
+
+<div class="deck" id="deck">
+
+<section class="slide cover" id="s1">
+  <span class="eyebrow"><span class="num">1</span>หน้าปก</span>
+  <h1>ผจญภัยเกาะเศษส่วน</h1>
+  <h2 class="lead">Fraction Island Quest — บอร์ดเกมการเรียนรู้ เรื่อง เศษส่วน ชั้นประถมศึกษาปีที่ 5</h2>
+  <p class="body-text" style="max-width:56ch;margin-top:8px;">นักสำรวจตัวน้อย 4 คน ผจญภัยข้าม 5 เกาะแห่งเศษส่วน เพื่อเก็บเศษแผนที่และไขประตูขุมทรัพย์กลางกระดาน — เล่นสนุก ต้องคิดคำนวณจริงทุกก้าว</p>
+  <div class="pill" style="margin-top:10px;background:rgba(244,251,249,.15);color:#F4FBF9;">Key Visual: ภาพนักผจญภัยบนเกาะเศษส่วน — <b>ต้องกำหนดเพิ่มเติม</b> (รอผลิตภาพประกอบจริง)</div>
+</section>
+
+<section class="slide" id="s2">
+  <span class="eyebrow"><span class="num">2</span>ที่มาและความสำคัญ</span>
+  <h1>ทำไมต้องใช้บอร์ดเกมสอนเศษส่วน</h1>
+  <div class="content grid-2">
+    <div class="card">
+      <h3>ความท้าทายเดิมของนักเรียน</h3>
+      <ul class="plain">
+        <li>เศษส่วนเป็นเรื่องนามธรรม เข้าใจยากกว่าจำนวนนับ</li>
+        <li>มีหลายขั้นตอน (แปลงตัวส่วน บวกลบคูณหาร) ทำให้สับสนง่าย</li>
+        <li>เรียนแบบท่องจำสูตร ไม่เข้าใจเหตุผลเบื้องหลัง</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>เหตุผลที่เลือกบอร์ดเกม</h3>
+      <ul class="plain">
+        <li>เรียนผ่านการเล่น ลดความรู้สึกกดดันจากแบบฝึกหัด</li>
+        <li>บังคับให้ตัดสินใจ-คำนวณจริง ไม่ใช่แค่ทอยเดิน</li>
+        <li>ฝึกอธิบายเหตุผล ไม่ใช่แค่ได้คำตอบถูก</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s3">
+  <span class="eyebrow"><span class="num">3</span>แนวคิดของบอร์ดเกม</span>
+  <h1>Theme · Story · แนวคิดหลัก</h1>
+  <div class="content grid-2">
+    <div class="card">
+      <h3>Theme &amp; Story</h3>
+      <p class="body-text">นักสำรวจเรืออับปางบนหมู่เกาะลึกลับ 5 เกาะ แต่ละเกาะมี "กฎเศษส่วน" ของตัวเอง ผู้เล่นต้องแก้โจทย์เพื่อเก็บเศษแผนที่ขุมทรัพย์ให้ครบ แล้วรวมร่างเป็นแผนที่สมบูรณ์</p>
+    </div>
+    <div class="card">
+      <h3>แนวคิดหลักของกลไก</h3>
+      <p class="body-text">ลูกเต๋ากำหนดแค่ <b>ระยะทางสูงสุด</b> ที่เดินได้ — ระยะทางจริงขึ้นอยู่กับว่าตอบโจทย์เศษส่วนถูกหรือผิด ทำให้ความคิดสำคัญกว่าดวง</p>
+    </div>
+  </div>
+  <div class="zone-map">
+    <div class="zone-chip">START<small>อ่าวเรืออับปาง</small></div>
+    <span class="zone-arrow">→</span>
+    <div class="zone-chip">เกาะ 1<small>เศษส่วนพื้นฐาน</small></div>
+    <span class="zone-arrow">→</span>
+    <div class="zone-chip">เกาะ 2<small>เศษส่วนเท่ากัน</small></div>
+    <span class="zone-arrow">→</span>
+    <div class="zone-chip">เกาะ 3<small>เปรียบเทียบ</small></div>
+    <span class="zone-arrow">→</span>
+    <div class="zone-chip">เกาะ 4<small>บวก–ลบ</small></div>
+    <span class="zone-arrow">→</span>
+    <div class="zone-chip">เกาะ 5<small>คูณ–หาร</small></div>
+    <span class="zone-arrow">→</span>
+    <div class="zone-chip" style="background:color-mix(in srgb, var(--gold) 22%, var(--surface-2));">ขุมทรัพย์</div>
+  </div>
+</section>
+
+<section class="slide" id="s4">
+  <span class="eyebrow"><span class="num">4</span>วัตถุประสงค์การเรียนรู้</span>
+  <h1>ทักษะที่นักเรียนได้พัฒนา</h1>
+  <div class="content grid-2">
+    <div class="card">
+      <h3>ทักษะเนื้อหาเศษส่วน</h3>
+      <ul class="plain">
+        <li>จำแนกเศษส่วนแท้ เศษส่วนเกิน จำนวนคละ</li>
+        <li>หาเศษส่วนที่เท่ากัน และเศษส่วนอย่างต่ำ</li>
+        <li>เปรียบเทียบและเรียงลำดับเศษส่วน</li>
+        <li>บวก ลบ คูณ หารเศษส่วนและจำนวนคละ</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>ทักษะเสริมนอกเหนือเนื้อหา</h3>
+      <ul class="plain">
+        <li>อธิบายเหตุผล/วิธีคิดให้ผู้อื่นเข้าใจ</li>
+        <li>ตัดสินใจเชิงกลยุทธ์ภายใต้เวลาจำกัด</li>
+        <li>ทำงานร่วมกันและช่วยเหลือเพื่อนในกลุ่ม</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s5">
+  <span class="eyebrow"><span class="num">5</span>เนื้อหาคณิตศาสตร์ในเกม</span>
+  <h1>หัวข้อเศษส่วนที่ผูกกับกิจกรรมในเกม</h1>
+  <div class="content">
+    <table class="deck-table">
+      <tr><th>หัวข้อเนื้อหา ป.5</th><th>ผูกกับกิจกรรมในเกม</th></tr>
+      <tr><td>เศษส่วนแท้ / เกิน / จำนวนคละ</td><td>เกาะ 1 — การ์ดโจทย์เริ่มต้น</td></tr>
+      <tr><td>เศษส่วนที่เท่ากัน / เศษส่วนอย่างต่ำ</td><td>เกาะ 2 — ช่องตลาดแลกเปลี่ยน</td></tr>
+      <tr><td>เปรียบเทียบ / เรียงลำดับเศษส่วน</td><td>เกาะ 3 — ภารกิจเรียงลำดับท้ายเกม</td></tr>
+      <tr><td>บวก–ลบเศษส่วนและจำนวนคละ</td><td>เกาะ 4 — สะพานเชื่อมเกาะ</td></tr>
+      <tr><td>คูณ–หารเศษส่วนและจำนวนคละ</td><td>เกาะ 5 — ประตูมิติ (ด่านสุดท้าย)</td></tr>
+    </table>
+    <div class="callout">
+      <span class="mark">⚠</span>
+      <span><b>ข้อควรทราบ:</b> เนื้อหาคณิตศาสตร์ชุดนี้อิงหลักสูตร ป.5 มาตรฐาน (สพฐ.) เนื่องจากขั้นตอนออกแบบยังไม่มีการเข้าถึงแหล่งข้อมูล NotebookLM ของโรงเรียนโดยตรง <b>ยังไม่ได้ตรวจเทียบกับเอกสารการสอนจริง</b> — ต้องให้ครูผู้สอนตรวจทานทุกข้อก่อนนำไปผลิต/ใช้งานจริง</span>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s6">
+  <span class="eyebrow"><span class="num">6</span>กลุ่มเป้าหมายและรูปแบบการเล่น</span>
+  <h1>เล่นที่ไหน เล่นกับใคร เล่นนานแค่ไหน</h1>
+  <div class="content stat-row">
+    <div class="stat"><div class="num">ป.5</div><div class="label">อายุ 10–11 ปี ผ่านการเรียนเศษส่วนพื้นฐานมาแล้ว</div></div>
+    <div class="stat"><div class="num">2–4</div><div class="label">ผู้เล่นต่อกระดาน 1 ชุด (แบ่งกลุ่มย่อยได้หลายโต๊ะ)</div></div>
+    <div class="stat"><div class="num">30–40</div><div class="label">นาทีต่อรอบ — พอดี 1 คาบเรียน</div></div>
+  </div>
+</section>
+
+<section class="slide" id="s7">
+  <span class="eyebrow"><span class="num">7</span>อุปกรณ์ทั้งหมด</span>
+  <h1>สิ่งที่ต้องมีในกล่องเกม</h1>
+  <div class="content grid-2">
+    <table class="deck-table">
+      <tr><th>อุปกรณ์</th><th>จำนวน</th></tr>
+      <tr><td>กระดานหลัก (พับ 4 ทบ)</td><td>1 แผ่น</td></tr>
+      <tr><td>การ์ดโจทย์ / การ์ดภารกิจ</td><td>90 + 30 ใบ</td></tr>
+      <tr><td>การ์ดเหตุการณ์ / โบนัส / ช่วยเหลือ / พิเศษ</td><td>24+18+15+8 ใบ</td></tr>
+      <tr><td>ตัวหมากผู้เล่น 4 สี</td><td>4 ตัว</td></tr>
+    </table>
+    <table class="deck-table">
+      <tr><th>อุปกรณ์</th><th>จำนวน</th></tr>
+      <tr><td>ลูกเต๋า</td><td>1 ลูก</td></tr>
+      <tr><td>เหรียญคะแนน / โบนัส</td><td>ชุดละ ~40 เหรียญ</td></tr>
+      <tr><td>นาฬิกาทราย 60 วินาที</td><td>1 อัน</td></tr>
+      <tr><td>ป้ายกติกาสรุปย่อ</td><td>1 แผ่น</td></tr>
+    </table>
+  </div>
+  <p class="body-text" style="color:var(--text-muted);font-size:13px;">รวมการ์ดทั้งหมด 185 ใบ ใน 6 ประเภท</p>
+</section>
+
+<section class="slide" id="s8">
+  <span class="eyebrow"><span class="num">8</span>Board Map</span>
+  <h1>โครงสร้างเส้นทางบนกระดาน</h1>
+  <div class="content">
+    <div class="zone-map" style="margin-bottom:8px;">
+      <div class="zone-chip">START</div><span class="zone-arrow">→</span>
+      <div class="zone-chip">เกาะ 1<small>ช่อง 1–8</small></div><span class="zone-arrow">→</span>
+      <div class="zone-chip">เกาะ 2<small>ช่อง 9–16</small></div><span class="zone-arrow">→</span>
+      <div class="zone-chip">เกาะ 3<small>ช่อง 17–24</small></div>
+    </div>
+    <div class="zone-map">
+      <div class="zone-chip">เกาะ 4<small>ช่อง 25–32</small></div><span class="zone-arrow">→</span>
+      <div class="zone-chip">เกาะ 5<small>ช่อง 33–40</small></div><span class="zone-arrow">→</span>
+      <div class="zone-chip" style="background:color-mix(in srgb, var(--gold) 22%, var(--surface-2));">ประตูขุมทรัพย์<small>กึ่งกลางกระดาน</small></div>
+    </div>
+    <div class="stat-row" style="margin-top:14px;">
+      <div class="stat"><div class="num">55×55</div><div class="label">ซม. ขนาดกระดาน พับ 4 ทบ</div></div>
+      <div class="stat"><div class="num">42</div><div class="label">ตำแหน่งรวม (40 ช่องภารกิจ + START + FINISH)</div></div>
+      <div class="stat"><div class="num">1</div><div class="label">เส้นทางลัด เชื่อมช่อง 27 → 37</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s9">
+  <span class="eyebrow"><span class="num">9</span>ประเภทช่องบนกระดาน</span>
+  <h1>ทุกช่องมีหน้าที่ ไม่มีช่องเดินผ่านเฉย ๆ</h1>
+  <div class="content">
+    <table class="deck-table">
+      <tr><th>ประเภทช่อง</th><th>จำนวน</th><th>หน้าที่</th></tr>
+      <tr><td>ภารกิจเศษส่วน</td><td>17</td><td>ตอบโจทย์ตามระดับดาวของโซน</td></tr>
+      <tr><td>เศษแผนที่</td><td>5</td><td>ตอบถูก → ได้ชิ้นส่วนแผนที่ขุมทรัพย์</td></tr>
+      <tr><td>ตลาดแลกเปลี่ยน</td><td>3</td><td>แลกเศษส่วนที่เท่ากันระหว่างการ์ด</td></tr>
+      <tr><td>พายุ</td><td>4</td><td>ตอบผิดสะสม 2 ครั้ง → ถอยหลัง 2 ช่อง</td></tr>
+      <tr><td>ทางลัด</td><td>1</td><td>ตอบยากถูก → ข้ามไปเกาะ 5 ได้ทันที</td></tr>
+      <tr><td>พักเกาะ</td><td>4</td><td>พัก 1 ตา ควบคุมจังหวะเกม</td></tr>
+      <tr><td>เหตุการณ์</td><td>5</td><td>จับการ์ดเหตุการณ์ สุ่ม/ปฏิสัมพันธ์กับเพื่อน</td></tr>
+      <tr><td>ด่านตรวจประตู</td><td>1</td><td>ตรวจเงื่อนไขก่อนเข้าประตูขุมทรัพย์</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="slide" id="s10">
+  <span class="eyebrow"><span class="num">10</span>การ์ดในเกม</span>
+  <h1>การ์ด 6 ประเภท คนละหน้าที่</h1>
+  <div class="content">
+    <table class="deck-table">
+      <tr><th>ประเภทการ์ด</th><th>จำนวน</th><th>ตัวอย่างการใช้งาน</th></tr>
+      <tr><td>การ์ดโจทย์</td><td>90</td><td>จับเมื่อหยุดช่องภารกิจ ตอบถูกได้แต้ม+เดินเต็ม</td></tr>
+      <tr><td>การ์ดภารกิจ</td><td>30</td><td>ด่านสรุปโซน ตอบถูกได้เศษแผนที่</td></tr>
+      <tr><td>การ์ดเหตุการณ์</td><td>24</td><td>"คลื่นซัด" เปรียบเทียบเศษส่วนกับเพื่อน</td></tr>
+      <tr><td>การ์ดโบนัส</td><td>18</td><td>ตอบทันเวลา → เดินเพิ่ม/แต้มเพิ่ม</td></tr>
+      <tr><td>การ์ดช่วยเหลือ</td><td>15</td><td>ซื้อด้วยแต้ม เพิ่มโอกาสตอบถูก (ไม่บอกคำตอบ)</td></tr>
+      <tr><td>การ์ดพิเศษ</td><td>8</td><td>หายาก ได้จากภารกิจยากติดกัน 2 ครั้ง</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="slide" id="s11">
+  <span class="eyebrow"><span class="num">11</span>ตัวอย่างโจทย์</span>
+  <h1>โจทย์จริงจากคลังข้อสอบ 4 ระดับ</h1>
+  <div class="content grid-2">
+    <div class="card">
+      <h3>★ ง่าย — การบวกเศษส่วน</h3>
+      <p class="body-text"><span class="frac"><span class="n">2</span><span>5</span></span> + <span class="frac"><span class="n">1</span><span>5</span></span> = ? &nbsp;→&nbsp; <b><span class="frac"><span class="n">3</span><span>5</span></span></b></p>
+    </div>
+    <div class="card">
+      <h3>★★ ปานกลาง — การลบเศษส่วน</h3>
+      <p class="body-text"><span class="frac"><span class="n">3</span><span>4</span></span> − <span class="frac"><span class="n">1</span><span>8</span></span> = ? &nbsp;→&nbsp; แปลง 3/4=6/8 &nbsp;→&nbsp; <b><span class="frac"><span class="n">5</span><span>8</span></span></b></p>
+    </div>
+    <div class="card">
+      <h3>★★ ปานกลาง — การหารเศษส่วน</h3>
+      <p class="body-text"><span class="frac"><span class="n">1</span><span>2</span></span> ÷ <span class="frac"><span class="n">1</span><span>4</span></span> = ? &nbsp;→&nbsp; คูณส่วนกลับ &nbsp;→&nbsp; <b>2</b></p>
+    </div>
+    <div class="card">
+      <h3>★★★ ท้าทาย — บวกจำนวนคละ</h3>
+      <p class="body-text">1<span class="frac"><span class="n">1</span><span>4</span></span> + 2<span class="frac"><span class="n">3</span><span>8</span></span> = ? &nbsp;→&nbsp; <b>3<span class="frac"><span class="n">5</span><span>8</span></span></b></p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s12">
+  <span class="eyebrow"><span class="num">12</span>ตัวอย่างการเล่น</span>
+  <h1>จำลอง 1 ตาการเล่นตั้งแต่ต้นจนจบ</h1>
+  <div class="content flow">
+    <div class="step"><div class="n">01</div>ทอยลูกเต๋าได้ 5 หมากเดินจาก START ไปช่อง 5 (ช่องเศษแผนที่ เกาะ 1)</div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="n">02</div>จับการ์ดภารกิจเกาะ 1 โจทย์: จำแนก 2 1/6 เป็นเศษส่วนเกิน</div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="n">03</div>ตอบถูก (13/6) + อธิบายวิธีทำได้ → ได้เศษแผนที่ชิ้นที่ 1 และแต้มความรู้ 6 แต้ม</div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="n">04</div>เดินหน้าเต็ม 5 ช่องตามลูกเต๋า ผลัดให้ผู้เล่นถัดไป</div>
+  </div>
+</section>
+
+<section class="slide" id="s13">
+  <span class="eyebrow"><span class="num">13</span>ระบบคะแนน</span>
+  <h1>คิดถูก + อธิบายได้ สำคัญกว่าดวง</h1>
+  <div class="content">
+    <table class="deck-table">
+      <tr><th>แหล่งคะแนน</th><th>แต้มความรู้</th></tr>
+      <tr><td>ตอบถูก ระดับ ★ / ★★ / ★★★</td><td>1 / 2 / 3 แต้ม</td></tr>
+      <tr><td>อธิบายวิธีทำถูกเพิ่ม (เท่ากับแต้มพื้นฐาน)</td><td>+1 / +2 / +3 แต้ม</td></tr>
+      <tr><td>ตอบทันเวลานาฬิกาทราย (โบนัส)</td><td>+1 แต้ม</td></tr>
+      <tr><td>ช่วยเพื่อนสำเร็จ (สูงสุด 2 ครั้ง/เกม)</td><td>+1 / +2 แต้ม</td></tr>
+      <tr><td>ตอบการ์ดโจทย์ / ภารกิจผิด</td><td>−1 / −2 แต้ม (ไม่ต่ำกว่า 0)</td></tr>
+    </table>
+    <div class="callout" style="background:color-mix(in srgb, var(--accent) 12%, var(--surface));border-color:color-mix(in srgb, var(--accent) 35%, transparent);">
+      <span class="mark" style="color:var(--accent);">✓</span>
+      <span>มี Catch-up 4 รูปแบบ (การ์ดช่วยเหลือฟรี, โบนัสไล่ตาม, ด่านทบทวนผู้นำ, จุดทบทวนกลางเกม) ป้องกันไม่ให้ผู้ได้เปรียบตั้งแต่ต้นชนะง่ายเกินไป</span>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s14">
+  <span class="eyebrow"><span class="num">14</span>เงื่อนไขการชนะ</span>
+  <h1>ต้องใช้ความรู้จริง ไม่ใช่แค่ตำแหน่งบนกระดาน</h1>
+  <div class="content flow">
+    <div class="step"><div class="n">01</div>มีเศษแผนที่ครบ 5 ชิ้น</div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="n">02</div>แต้มความรู้สะสม ≥ 15 แต้ม</div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="n">03</div>ผ่านด่านตรวจประตู (ช่อง 40)</div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="n">04</div>เรียงลำดับเศษแผนที่ 5 ใบถูกต้อง</div>
+  </div>
+  <p class="body-text" style="color:var(--text-muted);font-size:13px;">หมดเวลาแล้วยังไม่มีผู้ชนะ → ตัดสินจากจำนวนเศษแผนที่ แล้วจึงแต้มความรู้ (ไม่ใช้ตำแหน่งบนกระดานตัดสินเด็ดขาด)</p>
+</section>
+
+<section class="slide" id="s15">
+  <span class="eyebrow"><span class="num">15</span>จุดเด่นของเกม</span>
+  <h1>ต่างจากเกมเศษส่วนทั่วไปอย่างไร</h1>
+  <div class="content grid-2">
+    <div class="card"><h3>ลูกเต๋าไม่ตัดสินผลแพ้ชนะ</h3><p>กำหนดแค่ระยะทางสูงสุด ระยะจริงขึ้นกับการคิดคำนวณ</p></div>
+    <div class="card"><h3>ด่านไล่ระดับตามหลักสูตรจริง</h3><p>เศษส่วนพื้นฐาน → เท่ากัน → เปรียบเทียบ → บวกลบ → คูณหาร</p></div>
+    <div class="card"><h3>ภารกิจจบเกมทบทวนซ้ำ</h3><p>ต้องเรียงลำดับเศษส่วนอีกครั้งก่อนเปิดขุมทรัพย์</p></div>
+    <div class="card"><h3>บทลงโทษแบบผ่อนปรน</h3><p>เดินได้ครึ่งหนึ่ง ไม่หยุดสนิท รักษาแรงจูงใจของทุกคน</p></div>
+  </div>
+</section>
+
+<section class="slide" id="s16">
+  <span class="eyebrow"><span class="num">16</span>บทบาทของครู</span>
+  <h1>ครูเตรียมอะไร ทำหน้าที่อะไรระหว่างเล่น</h1>
+  <div class="content grid-2">
+    <div class="card">
+      <h3>ก่อนเล่น</h3>
+      <ul class="plain">
+        <li>อ่านกติกาสรุป 1 หน้า และเดโมสั้น ๆ ให้ทั้งห้อง</li>
+        <li>แบ่งกลุ่ม 2–4 คน/กระดาน 1 ชุด</li>
+        <li>เตรียมนาฬิกาทราย/ลูกเต๋า/การ์ดให้ครบ</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>ระหว่างเล่น</h3>
+      <ul class="plain">
+        <li>เป็นผู้ตัดสินหลักว่าคำอธิบายวิธีทำ "สมเหตุสมผล" หรือไม่</li>
+        <li>คุมจุดทบทวนกลางเกม (เวลาผ่านครึ่งหนึ่ง)</li>
+        <li>สังเกตพฤติกรรมช่วยเหลือกันในกลุ่ม</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s17">
+  <span class="eyebrow"><span class="num">17</span>ผลลัพธ์การเรียนรู้ที่คาดหวัง</span>
+  <h1>สิ่งที่นักเรียนควรได้รับหลังเล่นจบ</h1>
+  <div class="content stat-row">
+    <div class="stat"><div class="num">01</div><div class="label">คำนวณเศษส่วนแม่นยำขึ้นผ่านการฝึกซ้ำแบบสนุก</div></div>
+    <div class="stat"><div class="num">02</div><div class="label">กล้าอธิบายวิธีคิดของตนเองให้ผู้อื่นเข้าใจ</div></div>
+    <div class="stat"><div class="num">03</div><div class="label">มีเจตคติที่ดีต่อวิชาคณิตศาสตร์มากขึ้น</div></div>
+  </div>
+</section>
+
+<section class="slide closing" id="s18">
+  <span class="eyebrow"><span class="num">18</span>สรุป</span>
+  <h1>บอร์ดเกมที่บังคับให้ "คิดเลขจริง" ทุกก้าว</h1>
+  <p class="body-text" style="max-width:58ch;">ผจญภัยเกาะเศษส่วนออกแบบให้การชนะผูกกับความเข้าใจเศษส่วนโดยตรง ไม่ใช่โชคจากลูกเต๋า พร้อมกลไก catch-up ที่ให้ทุกคนมีโอกาสไล่ตามได้จริง</p>
+  <div class="callout" style="background:rgba(244,251,249,.12);border-color:rgba(244,251,249,.3);">
+    <span class="mark" style="color:#F7C873;">i</span>
+    <span>สถานะการตรวจสอบคุณภาพปัจจุบัน: <b>76.7/100 — ควรปรับปรุงก่อนผลิต</b> ขั้นตอนสำคัญที่สุดที่เหลือคือการตรวจเนื้อหาคณิตศาสตร์ทั้งหมดเทียบกับแหล่งข้อมูล NotebookLM ของโรงเรียนก่อนผลิตจริง</span>
+  </div>
+</section>
+
+</div>
+
+<div class="nav">
+  <button id="prevBtn" aria-label="สไลด์ก่อนหน้า">‹ ก่อนหน้า</button>
+  <span class="count"><span id="curNum">1</span> / 18</span>
+  <button id="nextBtn" aria-label="สไลด์ถัดไป">ถัดไป ›</button>
+</div>
+
+<script>
+  (function(){
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var curNum = document.getElementById('curNum');
+    function currentIndex(){
+      var mid = window.scrollY + window.innerHeight/2;
+      var idx = 0;
+      slides.forEach(function(s,i){
+        if (s.offsetTop <= mid) idx = i;
+      });
+      return idx;
+    }
+    function updateCount(){ curNum.textContent = currentIndex()+1; }
+    function goTo(i){
+      i = Math.max(0, Math.min(slides.length-1, i));
+      slides[i].scrollIntoView({behavior:'smooth', block:'start'});
+    }
+    document.getElementById('prevBtn').addEventListener('click', function(){ goTo(currentIndex()-1); });
+    document.getElementById('nextBtn').addEventListener('click', function(){ goTo(currentIndex()+1); });
+    window.addEventListener('keydown', function(e){
+      if (e.key === 'ArrowRight' || e.key === 'PageDown'){ goTo(currentIndex()+1); }
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ goTo(currentIndex()-1); }
+    });
+    window.addEventListener('scroll', updateCount, {passive:true});
+    updateCount();
+  })();
+</script>
