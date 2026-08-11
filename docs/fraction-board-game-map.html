@@ -1,0 +1,261 @@
+<title>ผังกระดาน — ผจญภัยเกาะเศษส่วน</title>
+<style>
+  :root{
+    --bg:#FAF7F0;
+    --surface:#FFFFFF;
+    --ink:#1B2B2B;
+    --muted:#5B6B68;
+    --accent:#0E6E6E;
+    --border:rgba(20,40,40,.10);
+    --shadow:0 1px 2px rgba(20,40,40,.06), 0 10px 28px rgba(20,40,40,.08);
+    --track:#DCE7E4;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0B1A1A; --surface:#12262A; --ink:#EAF3F1; --muted:#9FB8B5;
+      --accent:#5FDBCB; --border:rgba(95,219,203,.18); --track:#1C3538;
+      --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 28px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0B1A1A; --surface:#12262A; --ink:#EAF3F1; --muted:#9FB8B5;
+    --accent:#5FDBCB; --border:rgba(95,219,203,.18); --track:#1C3538;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 28px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Sarabun','Noto Sans Thai','Leelawadee UI','Tahoma',sans-serif;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:36px 20px 60px;}
+  header{margin-bottom:22px;}
+  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+  h1{font-size:28px;margin:6px 0 4px;font-weight:800;text-wrap:balance;}
+  p.lead{margin:0;color:var(--muted);font-size:14.5px;max-width:70ch;line-height:1.6;}
+  .board-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    box-shadow:var(--shadow); padding:20px; overflow-x:auto;
+  }
+  .board-card svg{display:block;margin:0 auto;}
+  .legend{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:12px; margin-top:22px;
+  }
+  .legend .group{
+    background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px;
+  }
+  .legend .group h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;}
+  .legend .row{display:flex;align-items:center;gap:9px;font-size:13px;padding:3px 0;}
+  .legend .dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;}
+  .legend .swatch{width:16px;height:16px;border-radius:5px;flex-shrink:0;}
+  .foot-note{margin-top:20px;font-size:12.5px;color:var(--muted);line-height:1.6;max-width:80ch;}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Board Map</div>
+    <h1>ผังกระดานเกม "ผจญภัยเกาะเศษส่วน"</h1>
+    <p class="lead">แผนภาพเวกเตอร์แสดงเส้นทางเดินจริงทั้ง 42 ตำแหน่งบนกระดาน ไล่จาก START ผ่าน 5 เกาะ ไปจนถึงประตูขุมทรัพย์กลางกระดาน ตรงตามสเปกในเอกสารแผนผังกระดาน — ใช้เพื่อดูภาพรวม ไม่ใช่ไฟล์ภาพประกอบสำเร็จรูปสำหรับพิมพ์จริง</p>
+  </header>
+
+  <div class="board-card">
+    <svg id="board" width="1080" height="1900" viewBox="0 0 1080 1900" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <div class="legend" id="legend"></div>
+
+  <p class="foot-note">
+    เส้นประสีทองคือเส้นทางลัด (ช่อง 27 → 37) แถบสีพื้นหลังแต่ละช่วงคืออาณาเขตของแต่ละเกาะ (อ้างอิงจาก <code>fraction-board-game-board-layout.md</code>) ตัวเลขในวงกลมคือหมายเลขช่อง ไอคอนคือประเภทช่องตาม 8 หมวดที่กำหนดไว้ — เมื่อผลิตกราฟิกจริง ให้นักวาดใช้แผนผังนี้เป็นแผนที่อ้างอิงตำแหน่ง แล้ววาดภาพประกอบเกาะ/เส้นทาง/ไอคอนทับตามสไตล์ที่กำหนดใน Art Direction แทนวงกลมเรียบง่ายนี้
+  </p>
+</div>
+
+<script>
+(function(){
+  var NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs){
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  var zoneNames = ["เกาะเริ่มต้น","เกาะกระจก","เกาะตาชั่ง","เกาะสะพานเชื่อม","เกาะประตูมิติ"];
+  var zoneTopics = ["เศษส่วนแท้/เกิน/จำนวนคละ","เศษส่วนเท่ากัน/อย่างต่ำ","เปรียบเทียบ/เรียงลำดับ","บวก–ลบเศษส่วน","คูณ–หารเศษส่วน"];
+  var zoneColors = ["#E8B84B","#5BA3D0","#7A8B4F","#8B5E3C","#7C5CBF"];
+  var goldColor = "#C99A3B";
+
+  var typeOf = {};
+  [1,2,4,7,10,11,16,17,19,21,25,26,28,31,33,35,37].forEach(function(n){ typeOf[n] = "challenge"; });
+  [5,14,22,30,38].forEach(function(n){ typeOf[n] = "mappiece"; });
+  [9,13,39].forEach(function(n){ typeOf[n] = "trade"; });
+  [8,18,24,34].forEach(function(n){ typeOf[n] = "storm"; });
+  [27].forEach(function(n){ typeOf[n] = "shortcut"; });
+  [6,15,23,32].forEach(function(n){ typeOf[n] = "rest"; });
+  [3,12,20,29,36].forEach(function(n){ typeOf[n] = "event"; });
+  [40].forEach(function(n){ typeOf[n] = "gate"; });
+
+  var typeMeta = {
+    challenge:{icon:"⚡", label:"ภารกิจเศษส่วน"},
+    mappiece:{icon:"🗺️", label:"เศษแผนที่"},
+    trade:{icon:"🛒", label:"ตลาดแลกเปลี่ยน"},
+    storm:{icon:"🌩️", label:"พายุ"},
+    shortcut:{icon:"🌉", label:"ทางลัด"},
+    rest:{icon:"🌴", label:"พักเกาะ"},
+    event:{icon:"🌊", label:"เหตุการณ์"},
+    gate:{icon:"🔑", label:"ด่านตรวจประตู"}
+  };
+
+  var colX = [170, 400, 630, 860];
+  var rowSpacing = 150;
+  var tileR = 44;
+  var row0Y = 1660; // zone1 top row (bottom of board)
+
+  function rowY(rowIndex){ return row0Y - rowIndex * rowSpacing; }
+
+  // compute tile positions
+  var tiles = {}; // num -> {x,y,zone}
+  for (var z = 0; z < 5; z++){
+    var base = z*8;
+    var topRow = 2*z, botRow = 2*z+1;
+    var topNums = [base+1, base+2, base+3, base+4];
+    var botNums = [base+8, base+7, base+6, base+5]; // col1..col4
+    topNums.forEach(function(n,i){ tiles[n] = {x:colX[i], y:rowY(topRow), zone:z}; });
+    botNums.forEach(function(n,i){ tiles[n] = {x:colX[i], y:rowY(botRow), zone:z}; });
+  }
+
+  var svg = document.getElementById("board");
+
+  // zone background bands
+  for (var z=0; z<5; z++){
+    var yTopRow = rowY(2*z);
+    var yBotRow = rowY(2*z+1);
+    var top = Math.min(yTopRow, yBotRow) - 85;
+    var bottom = Math.max(yTopRow, yBotRow) + 85;
+    var band = el("rect", {x:60, y:top, width:960, height:(bottom-top), rx:26, fill:zoneColors[z], opacity:"0.13"});
+    svg.appendChild(band);
+    var label = el("text", {x:90, y:top+30, "font-size":"15", "font-weight":"800", fill:zoneColors[z], "font-family":"Sarabun, sans-serif"});
+    label.textContent = "เกาะ " + (z+1) + " · " + zoneNames[z];
+    svg.appendChild(label);
+    var sub = el("text", {x:90, y:top+50, "font-size":"12", fill:"currentColor", opacity:"0.6", "font-family":"Sarabun, sans-serif"});
+    sub.textContent = zoneTopics[z];
+    sub.setAttribute("class","zone-sub");
+    svg.appendChild(sub);
+  }
+
+  // connector lines: horizontal within each row, vertical between rows
+  function line(x1,y1,x2,y2,opts){
+    var attrs = {x1:x1,y1:y1,x2:x2,y2:y2,stroke:(opts&&opts.stroke)||"var(--track)","stroke-width":opts&&opts.w||8,"stroke-linecap":"round"};
+    if (opts && opts.dash) attrs["stroke-dasharray"] = opts.dash;
+    return el("line", attrs);
+  }
+  var trackColor = "#C9D6D2";
+  for (var n=1;n<40;n++){
+    var a = tiles[n], b = tiles[n+1];
+    svg.appendChild(line(a.x,a.y,b.x,b.y,{stroke:trackColor,w:10}));
+  }
+  // start -> tile1, tile40 -> finish
+  var startPos = {x:colX[0], y:row0Y+150};
+  var finishPos = {x:colX[0], y:rowY(9)-150};
+  svg.appendChild(line(startPos.x,startPos.y,tiles[1].x,tiles[1].y,{stroke:trackColor,w:10}));
+  svg.appendChild(line(tiles[40].x,tiles[40].y,finishPos.x,finishPos.y,{stroke:trackColor,w:10}));
+
+  // shortcut connector (curved dashed gold)
+  var s1 = tiles[27], s2 = tiles[37];
+  var midx = (s1.x+s2.x)/2 + 140, midy=(s1.y+s2.y)/2;
+  var path = el("path", {
+    d: "M "+s1.x+" "+s1.y+" Q "+midx+" "+midy+" "+s2.x+" "+s2.y,
+    fill:"none", stroke:goldColor, "stroke-width":6, "stroke-dasharray":"3 12", "stroke-linecap":"round"
+  });
+  svg.appendChild(path);
+
+  // tiles
+  Object.keys(tiles).forEach(function(key){
+    var n = parseInt(key,10);
+    var t = tiles[n];
+    var type = typeOf[n];
+    var meta = typeMeta[type];
+    var isSpecial = type !== "challenge";
+    var g = el("g", {});
+    var circle = el("circle", {
+      cx:t.x, cy:t.y, r:tileR,
+      fill: isSpecial ? "#FFFFFF" : "#FFFFFF",
+      stroke: zoneColors[t.zone], "stroke-width": isSpecial ? 5 : 3.5
+    });
+    g.appendChild(circle);
+    var icon = el("text", {x:t.x, y:t.y-4, "text-anchor":"middle", "font-size":"22", "dominant-baseline":"middle"});
+    icon.textContent = meta.icon;
+    g.appendChild(icon);
+    var num = el("text", {x:t.x, y:t.y+24, "text-anchor":"middle", "font-size":"12", "font-weight":"700", fill:"#33403D", "font-family":"Sarabun, sans-serif"});
+    num.textContent = n;
+    g.appendChild(num);
+    svg.appendChild(g);
+  });
+
+  // START marker
+  var sg = el("g",{});
+  sg.appendChild(el("circle",{cx:startPos.x,cy:startPos.y,r:58,fill:"#0E6E6E"}));
+  var st1 = el("text",{x:startPos.x,y:startPos.y-6,"text-anchor":"middle","font-size":"15","font-weight":"800",fill:"#FFFFFF","font-family":"Sarabun, sans-serif"});
+  st1.textContent = "START";
+  sg.appendChild(st1);
+  var st2 = el("text",{x:startPos.x,y:startPos.y+16,"text-anchor":"middle","font-size":"11",fill:"#DFF4EF","font-family":"Sarabun, sans-serif"});
+  st2.textContent = "อ่าวเรืออับปาง";
+  sg.appendChild(st2);
+  svg.appendChild(sg);
+
+  // FINISH marker
+  var fg = el("g",{});
+  fg.appendChild(el("circle",{cx:finishPos.x,cy:finishPos.y,r:70,fill:goldColor}));
+  fg.appendChild(el("circle",{cx:finishPos.x,cy:finishPos.y,r:70,fill:"none",stroke:"#8A6A1E","stroke-width":3}));
+  var ft0 = el("text",{x:finishPos.x,y:finishPos.y-16,"text-anchor":"middle","font-size":"22"});
+  ft0.textContent = "🏆";
+  fg.appendChild(ft0);
+  var ft1 = el("text",{x:finishPos.x,y:finishPos.y+10,"text-anchor":"middle","font-size":"14","font-weight":"800",fill:"#3A2A08","font-family":"Sarabun, sans-serif"});
+  ft1.textContent = "FINISH";
+  fg.appendChild(ft1);
+  var ft2 = el("text",{x:finishPos.x,y:finishPos.y+27,"text-anchor":"middle","font-size":"10.5",fill:"#4A3A10","font-family":"Sarabun, sans-serif"});
+  ft2.textContent = "ประตูขุมทรัพย์";
+  fg.appendChild(ft2);
+  svg.appendChild(fg);
+
+  // title inside svg
+  var title = el("text",{x:540,y:60,"text-anchor":"middle","font-size":"20","font-weight":"800",fill:"currentColor","font-family":"Sarabun, sans-serif"});
+  title.textContent = "เส้นทาง 42 ตำแหน่ง: START → เกาะ 1–5 → ประตูขุมทรัพย์";
+  svg.insertBefore(title, svg.firstChild);
+
+  // color inherit fix for text using currentColor (svg needs explicit color attr on root for currentColor to work with CSS var)
+  svg.style.color = getComputedStyle(document.body).getPropertyValue('--ink');
+
+  // ---- legend ----
+  var legend = document.getElementById("legend");
+
+  var typeGroup = document.createElement("div");
+  typeGroup.className = "group";
+  typeGroup.innerHTML = "<h3>ประเภทช่อง</h3>";
+  Object.keys(typeMeta).forEach(function(k){
+    var row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = '<span class="dot" style="background:var(--track);">'+typeMeta[k].icon+'</span><span>'+typeMeta[k].label+'</span>';
+    typeGroup.appendChild(row);
+  });
+  legend.appendChild(typeGroup);
+
+  var zoneGroup = document.createElement("div");
+  zoneGroup.className = "group";
+  zoneGroup.innerHTML = "<h3>โซนเกาะ</h3>";
+  zoneNames.forEach(function(name,i){
+    var row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = '<span class="swatch" style="background:'+zoneColors[i]+';"></span><span>เกาะ '+(i+1)+' — '+name+'</span>';
+    zoneGroup.appendChild(row);
+  });
+  legend.appendChild(zoneGroup);
+
+  var statGroup = document.createElement("div");
+  statGroup.className = "group";
+  statGroup.innerHTML = "<h3>สรุปตัวเลข</h3>" +
+    '<div class="row">ตำแหน่งรวม: <b>&nbsp;42</b></div>' +
+    '<div class="row">ช่องภารกิจ (ทุกประเภทรวมกัน): <b>&nbsp;40</b></div>' +
+    '<div class="row">ช่องพิเศษที่ไม่ใช่ภารกิจปกติ: <b>&nbsp;23</b></div>' +
+    '<div class="row">เส้นทางลัด: <b>&nbsp;1 (ช่อง 27→37)</b></div>';
+  legend.appendChild(statGroup);
+})();
+</script>
