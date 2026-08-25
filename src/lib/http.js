@@ -59,12 +59,27 @@ function readBody(req, limitBytes = 25 * 1024 * 1024) {
   });
 }
 
+// Form bodies are exposed two ways: `fields` keeps the last value for each
+// name (what every single-value form wants) and `multi` keeps every value in
+// submission order, which the repeatable Google Drive link rows rely on to
+// pair each URL with its label by index.
+function collectPairs(pairs) {
+  const fields = {};
+  const multi = {};
+  for (const [key, value] of pairs) {
+    fields[key] = value;
+    if (!multi[key]) multi[key] = [];
+    multi[key].push(value);
+  }
+  return { fields, multi };
+}
+
 function parseUrlEncoded(str) {
-  const result = {};
+  const pairs = [];
   new URLSearchParams(str).forEach((value, key) => {
-    result[key] = value;
+    pairs.push([key, value]);
   });
-  return result;
+  return collectPairs(pairs);
 }
 
 function splitBuffer(buffer, delimiter) {
@@ -85,9 +100,9 @@ function splitBuffer(buffer, delimiter) {
 function parseMultipart(buffer, contentType) {
   const match = /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType || '');
   const boundary = match ? (match[1] || match[2]).trim() : null;
-  const fields = {};
+  const pairs = [];
   const files = [];
-  if (!boundary) return { fields, files };
+  if (!boundary) return { ...collectPairs(pairs), files };
 
   const delimiter = Buffer.from(`--${boundary}`);
   const parts = splitBuffer(buffer, delimiter);
@@ -119,11 +134,11 @@ function parseMultipart(buffer, contentType) {
         data: body,
       });
     } else {
-      fields[fieldName] = body.toString('utf8');
+      pairs.push([fieldName, body.toString('utf8')]);
     }
   }
 
-  return { fields, files };
+  return { ...collectPairs(pairs), files };
 }
 
 async function parseRequestBody(req) {
@@ -139,9 +154,9 @@ async function parseRequestBody(req) {
     } catch {
       json = {};
     }
-    return { fields: json, files: [], raw };
+    return { fields: json, multi: {}, files: [], raw };
   }
-  return { fields: parseUrlEncoded(raw.toString('utf8')), files: [], raw };
+  return { ...parseUrlEncoded(raw.toString('utf8')), files: [], raw };
 }
 
 function sendJson(res, status, obj) {
