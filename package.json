@@ -1,12 +1,13 @@
 {
   "name": "research-report-system",
-  "version": "1.0.0",
-  "description": "ระบบรายงานผลการวิจัยในชั้นเรียนและนวัตกรรมครูแบบดิจิทัล",
+  "version": "2.0.0",
+  "description": "เว็บเผยแพร่ผลงานวิจัยและนวัตกรรมของคณะครูและผู้อำนวยการ โรงเรียนเจ้าพ่อหลวงอุปถัมภ์ ๑ — เปิดให้ชมสาธารณะ ส่งงานด้วยลิงก์ Google Drive",
   "private": true,
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "seed": "node src/db/seed.js"
+    "seed": "node src/db/seed.js",
+    "test": "node scripts/smoke-test.js"
   },
   "engines": {
     "node": ">=22.5.0"

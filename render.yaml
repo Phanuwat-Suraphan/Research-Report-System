@@ -1,17 +1,15 @@
 # Render Blueprint — https://render.com/docs/blueprint-spec
 #
-# IMPORTANT: the free plan does NOT support persistent disks. Without the
-# `disk` section below (or on the free plan, where it is ignored), the
-# SQLite database and every uploaded file / locked document are wiped on
-# every deploy and periodic restart. That is fine for a demo, but the
-# system's own design doc requires keeping signed reports for 10+ years —
-# do not use this for real report data without a paid plan and the disk
-# attached.
+# ข้อมูลห้ามหายถาวร: ฐานข้อมูลทั้งหมด (ผลงาน ลิงก์ ลายเซ็น ประวัติเวอร์ชัน
+# และไฟล์สำรอง) อยู่ในโฟลเดอร์เดียวคือ DATA_DIR ซึ่ง mount กับ persistent disk
+# ด้านล่าง ถ้าไม่มี disk นี้ (เช่นบนแผน free ที่ไม่รองรับ) พื้นที่เก็บข้อมูลจะเป็น
+# แบบชั่วคราวและถูกล้างทุกครั้งที่ deploy ใหม่หรือเซิร์ฟเวอร์ restart
+# แผน starter เป็นแผนต่ำสุดที่แนบ disk ได้ จึงตั้งเป็นค่าเริ่มต้นไว้
 services:
   - type: web
     name: research-report-system
-    env: node
-    plan: free # change to "starter" (or higher) to use the persistent disk below
+    runtime: node
+    plan: starter
     buildCommand: "true"
     startCommand: node server.js
     envVars:
@@ -19,6 +17,12 @@ services:
         value: /var/data
       - key: NODE_ENV
         value: production
+      # รหัสสำหรับเพิ่ม/แก้ไข/ลบ/รับรองผลงาน (ค่าเริ่มต้น 123456)
+      # เปลี่ยนได้ที่หน้า "จัดการระบบ" ในเว็บ หรือกำหนดที่นี่
+      - key: EDIT_PASSCODE
+        value: "123456"
+      - key: SCHOOL_NAME
+        value: โรงเรียนเจ้าพ่อหลวงอุปถัมภ์ ๑
     disk:
       name: research-report-data
       mountPath: /var/data
