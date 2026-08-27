@@ -1,0 +1,57 @@
+# เผยแพร่บอร์ดเกมขึ้น GitHub Pages อัตโนมัติทุกครั้งที่แก้ไฟล์ในโฟลเดอร์ game/
+#
+# ต้องตั้งค่าครั้งเดียวที่ Settings → Pages → Source: "GitHub Actions"
+# หลังจากนั้นเกมจะอัปเดตเองทุกครั้งที่ push
+name: เผยแพร่บอร์ดเกม
+
+on:
+  push:
+    branches: [claude/board-game-walkable-aeq9io]
+    paths:
+      - 'game/**'
+      - '.github/workflows/deploy-game.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# ถ้ามีการ push ซ้อนกัน ให้ deploy ตัวล่าสุดพอ แต่ไม่ตัดตัวที่กำลังเผยแพร่ค้างอยู่
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # ด่านกันเฉลยผิดหลุดถึงมือนักเรียน — โจทย์ทุกใบต้องคำนวณแล้วตรงกับตัวเลือกที่ทำเครื่องหมายไว้
+      - name: ตรวจเฉลยการ์ดโจทย์
+        run: node game/tools/verify-cards.js
+
+      # ไฟล์เดียวจบสำหรับดาวน์โหลดไปเปิดออฟไลน์ (จะอยู่ที่ <url>/standalone.html)
+      - name: สร้างไฟล์เดียวจบ
+        run: node game/tools/build-standalone.js game/standalone.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: game
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
