@@ -1,9 +1,22 @@
 {
   "name": "การเดินทางสู่ปราสาทตัวเลข",
   "goal": "เดินทางผ่านดินแดนพิศวง ตอบคำถามคณิตศาสตร์เพื่อเอาชนะอุปสรรค และไปให้ถึงปราสาทตัวเลขเป็นคนแรก!",
+  "intro": [
+    {
+      "image": "assets/cover.webp",
+      "caption": "บอร์ดเกมผจญภัยแดนคณิตศาสตร์ สำหรับ ป.4"
+    },
+    {
+      "image": "assets/rules1.webp",
+      "caption": "อุปกรณ์: ลูกเต๋า 1 ลูก · ตัวหมาก 2-4 คน · การ์ดคำถามแบ่งตามระดับความยาก"
+    },
+    {
+      "image": "assets/rules2.webp",
+      "caption": "ทอยลูกเต๋า → ตกช่องไหนจั่วการ์ดนั้น → แก้สมการ → รับผลกรรม"
+    }
+  ],
   "showMarkers": false,
   "exactFinish": false,
-  "quizOnNormal": true,
   "maps": [
     {
       "id": "map1",
@@ -22,250 +35,263 @@
     {
       "id": 1,
       "map": "map1",
-      "x": 11.1,
-      "y": 72.8,
+      "x": 13.0,
+      "y": 66.5,
       "type": "start",
       "label": "จุดเริ่มต้น"
     },
     {
       "id": 2,
       "map": "map1",
-      "x": 25.5,
-      "y": 73.6,
+      "x": 27.0,
+      "y": 66.5,
       "type": "card",
-      "label": "ช่อง 2",
-      "deck": "easy"
+      "deck": "easy",
+      "label": "ช่อง 2"
     },
     {
       "id": 3,
       "map": "map1",
-      "x": 24.0,
-      "y": 61.7,
+      "x": 25.0,
+      "y": 52.0,
       "type": "card",
-      "label": "ช่อง 3",
-      "deck": "easy"
+      "deck": "easy",
+      "label": "ช่อง 3"
     },
     {
       "id": 4,
       "map": "map1",
-      "x": 28.7,
-      "y": 49.9,
+      "x": 29.5,
+      "y": 39.5,
       "type": "card",
-      "label": "ช่อง 4",
-      "deck": "medium"
+      "deck": "medium",
+      "label": "ช่อง 4"
     },
     {
       "id": 5,
       "map": "map1",
-      "x": 39.2,
-      "y": 50.0,
+      "x": 39.5,
+      "y": 38.0,
       "type": "goto",
-      "label": "ช่องทางลัด! กระโดดไปช่อง 10 ทันที",
-      "value": 10
+      "value": 10,
+      "label": "ช่องทางลัด! ข้ามกระโดดไปที่ช่อง 10 ทันที"
     },
     {
       "id": 6,
       "map": "map1",
-      "x": 47.8,
-      "y": 56.2,
+      "x": 47.5,
+      "y": 47.5,
       "type": "card",
-      "label": "ช่อง 6",
-      "deck": "easy"
+      "deck": "easy",
+      "label": "ช่อง 6"
     },
     {
       "id": 7,
       "map": "map1",
-      "x": 51.4,
-      "y": 67.8,
+      "x": 51.5,
+      "y": 61.0,
       "type": "card",
-      "label": "ช่อง 7",
-      "deck": "easy"
+      "deck": "easy",
+      "label": "ช่อง 7"
     },
     {
       "id": 8,
       "map": "map1",
-      "x": 56.1,
-      "y": 78.1,
+      "x": 56.0,
+      "y": 74.5,
       "type": "card",
-      "label": "ช่อง 8",
-      "deck": "easy"
+      "deck": "easy",
+      "label": "ช่อง 8"
     },
     {
       "id": 9,
       "map": "map1",
-      "x": 69.5,
+      "x": 65.2,
       "y": 84.5,
-      "type": "move",
-      "label": "หลุมพรางซ่อนเงา! ถอยหลัง 2 ช่อง",
-      "value": -2,
-      "unnumbered": true
+      "type": "card",
+      "deck": "special",
+      "card": "sp2",
+      "unnumbered": true,
+      "label": "ช่องมังกร! มังกรพ่นไฟขวางทาง ถอยหลัง 1 ช่อง"
     },
     {
       "id": 10,
       "map": "map1",
-      "x": 85.3,
-      "y": 79.4,
-      "type": "card",
-      "label": "ช่อง 9",
-      "display": "9",
-      "deck": "medium"
+      "x": 76.0,
+      "y": 84.8,
+      "type": "move",
+      "value": -2,
+      "unnumbered": true,
+      "label": "หลุมพรางลบช่องเดิน! ลื่นล้มถอยหลังกลับไป 2 ช่อง"
     },
     {
       "id": 11,
       "map": "map1",
-      "x": 89.7,
-      "y": 70.9,
+      "x": 84.7,
+      "y": 77.0,
       "type": "card",
-      "label": "ช่อง 10",
-      "display": "10",
-      "deck": "easy"
+      "deck": "medium",
+      "display": "9",
+      "label": "ช่อง 9"
     },
     {
       "id": 12,
       "map": "map1",
-      "x": 88.5,
-      "y": 60.1,
+      "x": 88.0,
+      "y": 64.0,
       "type": "card",
-      "label": "ช่อง 11",
-      "display": "11",
-      "deck": "easy"
+      "deck": "easy",
+      "display": "10",
+      "label": "ช่อง 10"
     },
     {
       "id": 13,
       "map": "map1",
-      "x": 88.8,
-      "y": 49.5,
+      "x": 87.0,
+      "y": 51.0,
       "type": "card",
-      "label": "ช่อง 12",
-      "display": "12",
-      "deck": "easy"
+      "deck": "easy",
+      "display": "11",
+      "label": "ช่อง 11"
     },
     {
       "id": 14,
-      "map": "map2",
-      "x": 11.1,
-      "y": 72.8,
-      "type": "portal",
-      "label": "ประตูมิติสู่แผนที่ 2",
-      "display": "13"
+      "map": "map1",
+      "x": 87.5,
+      "y": 38.0,
+      "type": "card",
+      "deck": "easy",
+      "display": "12",
+      "label": "ช่อง 12"
     },
     {
       "id": 15,
       "map": "map2",
-      "x": 24.4,
-      "y": 60.5,
+      "x": 28.1,
+      "y": 67.1,
       "type": "card",
-      "label": "ช่อง 14",
-      "display": "14",
-      "deck": "easy"
+      "deck": "special",
+      "card": "sp1",
+      "display": "13",
+      "label": "ช่องนางฟ้า! ได้รับพร เดินหน้า 2 ช่อง"
     },
     {
       "id": 16,
       "map": "map2",
-      "x": 28.7,
-      "y": 50.2,
+      "x": 29.8,
+      "y": 39.5,
       "type": "card",
-      "label": "ช่อง 15",
-      "display": "15",
-      "deck": "easy"
+      "deck": "easy",
+      "display": "14",
+      "label": "ช่อง 14"
     },
     {
       "id": 17,
       "map": "map2",
-      "x": 39.8,
-      "y": 49.9,
+      "x": 24.4,
+      "y": 51.9,
       "type": "card",
-      "label": "ช่อง 16",
-      "display": "16",
-      "deck": "medium"
+      "deck": "easy",
+      "display": "15",
+      "label": "ช่อง 15"
     },
     {
       "id": 18,
       "map": "map2",
-      "x": 47.9,
-      "y": 56.2,
-      "type": "swap",
-      "label": "ช่องพายุหมุน! สลับตำแหน่งกับผู้เล่นที่อยู่รั้งท้าย (ถ้าเล่น 2 คน หยุดเดิน 1 ตา)",
-      "display": "17"
+      "x": 39.5,
+      "y": 38.9,
+      "type": "card",
+      "deck": "medium",
+      "display": "16",
+      "label": "ช่อง 16"
     },
     {
       "id": 19,
       "map": "map2",
-      "x": 51.5,
-      "y": 66.5,
+      "x": 47.6,
+      "y": 47.6,
       "type": "card",
-      "label": "ช่อง 18",
-      "display": "18",
-      "deck": "medium"
+      "deck": "medium",
+      "display": "17",
+      "label": "ช่อง 17"
     },
     {
       "id": 20,
       "map": "map2",
-      "x": 56.3,
-      "y": 79.2,
-      "type": "card",
-      "label": "ช่อง 19",
-      "display": "19",
-      "deck": "medium"
+      "x": 51.4,
+      "y": 61.5,
+      "type": "swap",
+      "display": "18",
+      "label": "ช่องพายุหมุน! สลับตำแหน่งกับผู้เล่นที่อยู่รั้งท้ายสุด (ถ้าเล่น 2 คน หยุดเดิน 1 ตา)"
     },
     {
       "id": 21,
       "map": "map2",
-      "x": 66.0,
-      "y": 86.1,
+      "x": 55.9,
+      "y": 74.0,
       "type": "card",
-      "label": "ช่อง 20",
-      "display": "20",
-      "deck": "medium"
+      "deck": "medium",
+      "display": "19",
+      "label": "ช่อง 19"
     },
     {
       "id": 22,
       "map": "map2",
-      "x": 76.5,
-      "y": 87.3,
+      "x": 65.4,
+      "y": 83.3,
       "type": "card",
-      "label": "ช่อง 21",
-      "display": "21",
-      "deck": "medium"
+      "deck": "medium",
+      "display": "20",
+      "label": "ช่อง 20"
     },
     {
       "id": 23,
       "map": "map2",
-      "x": 85.9,
-      "y": 79.4,
+      "x": 76.2,
+      "y": 84.6,
       "type": "card",
-      "label": "ช่อง 22",
-      "display": "22",
-      "deck": "medium"
+      "deck": "medium",
+      "display": "21",
+      "label": "ช่อง 21"
     },
     {
       "id": 24,
       "map": "map2",
-      "x": 89.8,
-      "y": 70.7,
+      "x": 84.5,
+      "y": 76.8,
       "type": "card",
-      "label": "ช่อง 23",
-      "display": "23",
-      "deck": "hard"
+      "deck": "medium",
+      "display": "22",
+      "label": "ช่อง 22"
     },
     {
       "id": 25,
       "map": "map2",
-      "x": 88.5,
-      "y": 60.1,
+      "x": 88.3,
+      "y": 63.8,
       "type": "card",
-      "label": "ช่อง 24",
-      "display": "24",
-      "deck": "hard"
+      "deck": "medium",
+      "display": "23",
+      "label": "ช่อง 23"
     },
     {
       "id": 26,
       "map": "map2",
-      "x": 88.5,
-      "y": 49.9,
+      "x": 86.5,
+      "y": 51.2,
+      "type": "card",
+      "deck": "hard",
+      "display": "24",
+      "label": "ช่อง 24"
+    },
+    {
+      "id": 27,
+      "map": "map2",
+      "x": 87.6,
+      "y": 37.8,
       "type": "finish",
-      "label": "ปราสาทตัวเลข (เส้นชัย)",
-      "display": "25"
+      "display": "25",
+      "label": "ปราสาทตัวเลข (เส้นชัย)"
     }
   ]
 }

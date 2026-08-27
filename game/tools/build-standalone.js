@@ -29,6 +29,7 @@ const characters = readJson('data/characters.json');
 
 // เก็บทุก path รูปที่ข้อมูลอ้างถึง แล้วแปลงเป็น data URI
 const paths = new Set();
+(board.intro || []).forEach((slide) => slide.image && paths.add(slide.image));
 (board.maps || []).forEach((m) => m.image && paths.add(m.image));
 (characters.characters || []).forEach((c) => c.image && paths.add(c.image));
 Object.values(cards.decks || {}).forEach((deck) => {
@@ -57,7 +58,8 @@ const body = html.slice(html.indexOf('<body>') + 6, html.lastIndexOf('</body>'))
   .replace(/<a href="editor\.html">[\s\S]*?<\/a>/, '')
   .trim();
 
-const out = `<title>ศึกชิงปราสาทตัวเลข</title>
+const out = `<meta charset="utf-8">
+<title>ศึกชิงปราสาทตัวเลข</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

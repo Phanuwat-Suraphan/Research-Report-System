@@ -14,6 +14,53 @@
   const STEP_MS = 320;      // เวลาเดินต่อ 1 ช่อง
   const DICE_FACES = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 
+  // ---------- เสียง ----------
+  // สังเคราะห์เสียงเองด้วย WebAudio จึงไม่ต้องแนบไฟล์เสียงให้หน้าเว็บหนักขึ้น
+  let audioCtx = null;
+  let muted = false;
+  try { muted = localStorage.getItem('ncq-muted') === '1'; } catch { /* โหมดส่วนตัว/ปิดคุกกี้ */ }
+
+  const TONES = {
+    roll:    [[220, 0.05], [280, 0.05], [340, 0.06]],
+    step:    [[520, 0.04]],
+    correct: [[523, 0.09], [659, 0.09], [784, 0.16]],
+    wrong:   [[300, 0.12], [200, 0.20]],
+    card:    [[440, 0.06], [560, 0.08]],
+    win:     [[523, 0.12], [659, 0.12], [784, 0.12], [1047, 0.3]],
+  };
+
+  function sfx(name) {
+    if (muted || !TONES[name]) return;
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      let at = audioCtx.currentTime;
+      for (const [freq, dur] of TONES[name]) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = name === 'wrong' ? 'sawtooth' : 'triangle';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, at);
+        gain.gain.exponentialRampToValueAtTime(0.18, at + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(at);
+        osc.stop(at + dur + 0.02);
+        at += dur;
+      }
+    } catch { /* เบราว์เซอร์ไม่รองรับก็เล่นต่อได้ตามปกติ */ }
+  }
+
+  function setMuted(next) {
+    muted = next;
+    try { localStorage.setItem('ncq-muted', muted ? '1' : '0'); } catch { /* ไม่เป็นไร */ }
+    const btn = $('#btn-sound');
+    if (btn) {
+      btn.textContent = muted ? '🔇 เสียงปิด' : '🔊 เสียงเปิด';
+      btn.setAttribute('aria-pressed', String(!muted));
+    }
+  }
+
   const state = {
     board: null,
     cards: null,
@@ -61,7 +108,68 @@
     }
     document.title = state.board.name || document.title;
     $('#game-title').textContent = state.board.name || 'บอร์ดเกมเดินได้';
+
+    if (introSlides().length) showIntro(0);
+    setMuted(muted);
     renderSetup();
+
+    const saved = readSave();
+    if (saved) {
+      const when = new Date(saved.at || Date.now()).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
+      const bar = document.createElement('div');
+      bar.className = 'resume-bar';
+      bar.innerHTML = `<span>มีเกมค้างไว้เมื่อ ${escapeHtml(when)} (${saved.players.length} คน)</span>`;
+      const go = document.createElement('button');
+      go.type = 'button';
+      go.textContent = 'เล่นต่อ';
+      go.addEventListener('click', () => resumeGame(saved));
+      const drop = document.createElement('button');
+      drop.type = 'button';
+      drop.className = 'ghost';
+      drop.textContent = 'เริ่มใหม่';
+      drop.addEventListener('click', () => { clearSave(); bar.remove(); });
+      bar.append(go, drop);
+      $('#setup').prepend(bar);
+    }
+  }
+
+  // ---------- สไลด์แนะนำกติกา ----------
+  // ครูเปิดให้นักเรียนดูก่อนเล่น แล้วกดข้ามได้ถ้าเคยดูแล้ว
+  let introIndex = 0;
+
+  function introSlides() {
+    return Array.isArray(state.board.intro) ? state.board.intro : [];
+  }
+
+  function showIntro(index) {
+    const slides = introSlides();
+    if (!slides.length) return;
+    introIndex = Math.max(0, Math.min(index, slides.length - 1));
+    const slide = slides[introIndex];
+
+    $('#intro').hidden = false;
+    $('#setup').hidden = true;
+    $('#intro-img').src = asset(slide.image);
+    $('#intro-img').alt = slide.caption || '';
+    $('#intro-caption').textContent = slide.caption || '';
+    $('#intro-prev').disabled = introIndex === 0;
+    $('#intro-next').textContent = introIndex === slides.length - 1 ? 'เริ่มตั้งค่าผู้เล่น' : 'ถัดไป';
+
+    const dots = $('#intro-dots');
+    dots.innerHTML = '';
+    slides.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'intro-dot' + (i === introIndex ? ' active' : '');
+      dot.setAttribute('aria-label', `หน้าที่ ${i + 1}`);
+      dot.addEventListener('click', () => showIntro(i));
+      dots.appendChild(dot);
+    });
+  }
+
+  function closeIntro() {
+    $('#intro').hidden = true;
+    $('#setup').hidden = false;
   }
 
   // ---------- หน้าตั้งค่าผู้เล่น ----------
@@ -275,6 +383,7 @@
         break;
       }
       p.pos = next;
+      sfx('step');
       const s = spaceAt(p.pos);
       if (s.map !== state.activeMap) showMap(s.map);
       refreshTokens();
@@ -336,7 +445,7 @@
         return;
       }
       case 'card': {
-        await drawCard(playerIndex, s.deck, depth);
+        await drawCard(playerIndex, s.deck, depth, s.card);
         return;
       }
       default: {
@@ -387,14 +496,17 @@
     return deck.cards[deck._queue.pop()];
   }
 
-  async function drawCard(playerIndex, deckId, depth) {
-    // สุ่มโอกาสแทรกการ์ดเหตุการณ์พิเศษ (นางฟ้า/มังกร) แทนคำถามตามระดับ
-    const specialChance = state.cards.specialChance || 0;
-    if (state.cards.decks.special && deckId !== 'special' && Math.random() < specialChance) {
-      deckId = 'special';
+  async function drawCard(playerIndex, deckId, depth, forcedCardId) {
+    // ช่องมังกร/ช่องนางฟ้าระบุการ์ดไว้ตายตัว ส่วนช่องอื่นมีโอกาสเจอการ์ดเหตุการณ์พิเศษบ้าง
+    if (!forcedCardId) {
+      const specialChance = state.cards.specialChance || 0;
+      if (state.cards.decks.special && deckId !== 'special' && Math.random() < specialChance) {
+        deckId = 'special';
+      }
     }
     const deck = state.cards.decks[deckId];
-    const card = drawFromDeck(deckId);
+    if (!deck) return;
+    const card = forcedCardId ? deck.cards.find((c) => c.id === forcedCardId) : drawFromDeck(deckId);
     if (!card) return;
     const p = state.players[playerIndex];
 
@@ -404,7 +516,14 @@
       log(`${p.name} ${correct ? 'ตอบถูก' : 'ตอบผิด'}: ${card.text}`);
       await applyEffect(playerIndex, outcome, depth);
     } else {
-      await showCardModal({ title: card.title || deck.name, text: card.text, color: deck.color, image: card.image, back: deck.back });
+      // การ์ดเหตุการณ์มีข้อความพิมพ์อยู่ในรูปแล้ว จึงไม่ต้องเขียนซ้ำใต้รูป
+      await showCardModal({
+        title: card.title || deck.name,
+        text: card.textInImage ? '' : card.text,
+        color: deck.color,
+        image: card.image,
+        back: card.image ? '' : deck.back,
+      });
       log(`${p.name} จั่ว${deck.name}: ${card.text}`);
       await applyEffect(playerIndex, card.effect, depth);
     }
@@ -439,9 +558,10 @@
         <span class="deck-name">${escapeHtml(title || '')}</span>
         ${back ? `<img class="card-img" src="${asset(back)}" alt="">` : ''}
         ${image ? `<img class="card-img" src="${asset(image)}" alt="">` : ''}
-        <p>${escapeHtml(text || '')}</p>
+        ${text ? `<p>${escapeHtml(text)}</p>` : ''}
         <button type="button" id="modal-ok">ตกลง</button>`;
       $('#overlay').hidden = false;
+      sfx('card');
       $('#modal-ok').focus();
       $('#modal-ok').addEventListener('click', () => { closeModal(); resolve(); });
     });
@@ -457,35 +577,76 @@
         ${card.image ? `<img class="card-img" src="${asset(card.image)}" alt="">` : ''}
         <p>${escapeHtml(card.text)}</p>
         <div class="options"></div>
-        <p class="hint">${escapeHtml(player.name)} เป็นผู้ตอบ</p>`;
+        <p class="hint">${escapeHtml(player.name)} เป็นผู้ตอบ · กดเลข 1-${card.options.length} ก็ได้</p>`;
       const box = modal.querySelector('.options');
-      card.options.forEach((opt, i) => {
+
+      // สลับตำแหน่งตัวเลือกทุกครั้งที่จั่ว ไม่งั้นข้อถูกจะอยู่ปุ่มแรกเสมอจนเดาได้
+      const shuffled = card.options.map((text, i) => ({ text, correct: i === card.answer }));
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+
+      let done = false;
+      function answer(pick) {
+        if (done) return;
+        done = true;
+        const correct = shuffled[pick].correct;
+        [...box.children].forEach((c, j) => {
+          c.disabled = true;
+          if (shuffled[j].correct) c.classList.add('correct');
+          else if (j === pick) c.classList.add('wrong');
+        });
+        sfx(correct ? 'correct' : 'wrong');
+
+        const res = document.createElement('p');
+        res.className = 'result';
+        const outcome = describeEffect(correct ? card.reward : card.penalty);
+        res.textContent = correct
+          ? `ถูกต้อง!${outcome ? ' ' + outcome : ''}`
+          : `ยังไม่ถูก คำตอบคือ ${card.options[card.answer]}${outcome ? ' — ' + outcome : ''}`;
+        modal.insertBefore(res, modal.querySelector('.hint'));
+
+        // เฉลยวิธีทำทีละขั้น ให้เด็กเห็นว่าทำไมถึงได้คำตอบนี้
+        if (card.steps) {
+          const steps = document.createElement('p');
+          steps.className = 'steps';
+          steps.innerHTML = `<strong>วิธีทำ:</strong> ${escapeHtml(card.steps)}`;
+          modal.insertBefore(steps, modal.querySelector('.hint'));
+        }
+        if (!correct && state.cards.wizardRule) {
+          const rule = document.createElement('p');
+          rule.className = 'rule';
+          rule.textContent = state.cards.wizardRule;
+          modal.insertBefore(rule, modal.querySelector('.hint'));
+        }
+
+        const ok = document.createElement('button');
+        ok.type = 'button';
+        ok.textContent = 'ตกลง';
+        ok.addEventListener('click', () => { document.removeEventListener('keydown', onKey); closeModal(); resolve(correct); });
+        modal.appendChild(ok);
+        ok.focus();
+      }
+
+      shuffled.forEach((opt, i) => {
         const b = document.createElement('button');
         b.type = 'button';
-        b.textContent = opt;
-        b.addEventListener('click', () => {
-          const correct = i === card.answer;
-          [...box.children].forEach((c, j) => {
-            c.disabled = true;
-            if (j === card.answer) c.classList.add('correct');
-            else if (j === i) c.classList.add('wrong');
-          });
-          const res = document.createElement('p');
-          res.className = 'result';
-          res.textContent = correct
-            ? `ถูกต้อง! ${describeEffect(card.reward)}`
-            : `ยังไม่ถูก คำตอบคือ "${card.options[card.answer]}" ${describeEffect(card.penalty)}`;
-          modal.insertBefore(res, modal.querySelector('.hint'));
-          const ok = document.createElement('button');
-          ok.type = 'button';
-          ok.textContent = 'ตกลง';
-          ok.addEventListener('click', () => { closeModal(); resolve(correct); });
-          modal.appendChild(ok);
-          ok.focus();
-        });
+        b.innerHTML = `<span class="opt-key">${i + 1}</span>${escapeHtml(opt.text)}`;
+        b.addEventListener('click', () => answer(i));
         box.appendChild(b);
       });
+
+      // ตอบด้วยแป้นตัวเลขได้ เร็วกว่าจิ้มเมาส์เวลาเล่นกันหลายคน
+      function onKey(e) {
+        if (done) return;
+        const n = Number(e.key);
+        if (n >= 1 && n <= shuffled.length) { e.preventDefault(); answer(n - 1); }
+      }
+      document.addEventListener('keydown', onKey);
+
       $('#overlay').hidden = false;
+      box.firstChild.focus();
     });
   }
 
@@ -504,6 +665,8 @@
   async function announceWin(playerIndex) {
     const p = state.players[playerIndex];
     state.finished = true;
+    clearSave();
+    sfx('win');
     log(`🏆 ${p.name} ไปถึงปราสาทตัวเลขเป็นคนแรก!`);
     $('#btn-roll').disabled = true;
     await showCardModal({
@@ -530,6 +693,7 @@
     showMap(s.map);
     refreshTokens();
     renderSide();
+    saveGame();
   }
 
   async function rollDice() {
@@ -542,6 +706,7 @@
       dice.textContent = DICE_FACES[Math.floor(Math.random() * 6)];
       await sleep(70);
     }
+    sfx('roll');
     const value = 1 + Math.floor(Math.random() * 6);
     dice.textContent = DICE_FACES[value - 1];
     dice.classList.remove('rolling');
@@ -561,6 +726,53 @@
     $('#btn-roll').disabled = state.finished;
   }
 
+  // ---------- บันทึกเกมค้าง ----------
+  // ครูมักเล่นคาบเดียวไม่จบ ปิดแท็บแล้วกลับมาต่อได้
+  const SAVE_KEY = 'ncq-save';
+
+  function saveGame() {
+    if (state.finished) { clearSave(); return; }
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({
+        players: state.players.map((p) => ({ name: p.name, charId: p.charId, pos: p.pos, points: p.points, skipTurns: p.skipTurns })),
+        turn: state.turn,
+        at: Date.now(),
+      }));
+    } catch { /* พื้นที่เก็บเต็มหรือถูกปิด — เล่นต่อได้ แค่ไม่มีเซฟ */ }
+  }
+
+  function readSave() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (!data || !Array.isArray(data.players) || !data.players.length) return null;
+      const last = spaceAt(state.board.spaces.length - 1);
+      if (data.players.some((p) => typeof p.pos !== 'number' || p.pos < 0 || p.pos > state.board.spaces.length - 1)) return null;
+      return last ? data : null;
+    } catch { return null; }
+  }
+
+  function clearSave() {
+    try { localStorage.removeItem(SAVE_KEY); } catch { /* ไม่เป็นไร */ }
+  }
+
+  function resumeGame(data) {
+    state.players = data.players.map((p) => ({ ...p, finishedAt: null }));
+    state.turn = Math.min(data.turn || 0, state.players.length - 1);
+    state.finished = false;
+    state.activeMap = null;
+    $('#setup').hidden = true;
+    $('#intro').hidden = true;
+    $('#game').hidden = false;
+    $('#btn-restart').hidden = false;
+    $('#btn-roll').disabled = false;
+    $('#log').innerHTML = '';
+    showMap(spaceAt(state.players[state.turn].pos).map);
+    renderSide();
+    log('เล่นต่อจากเกมที่ค้างไว้');
+  }
+
   // ---------- เริ่ม / จบเกม ----------
   function startGame() {
     state.players.forEach((p) => { p.pos = 0; p.points = 0; p.skipTurns = 0; p.finishedAt = null; });
@@ -568,6 +780,7 @@
     state.finished = false;
     state.activeMap = null;
     $('#setup').hidden = true;
+    $('#intro').hidden = true;
     $('#game').hidden = false;
     $('#btn-restart').hidden = false;
     $('#btn-roll').disabled = false;
@@ -578,6 +791,7 @@
   }
 
   function restart() {
+    clearSave();
     $('#game').hidden = true;
     $('#setup').hidden = false;
     $('#btn-restart').hidden = true;
@@ -595,6 +809,14 @@
   $('#btn-start').addEventListener('click', startGame);
   $('#btn-restart').addEventListener('click', restart);
   $('#btn-roll').addEventListener('click', rollDice);
+  $('#btn-sound').addEventListener('click', () => { setMuted(!muted); if (!muted) sfx('card'); });
+  $('#intro-prev').addEventListener('click', () => showIntro(introIndex - 1));
+  $('#intro-next').addEventListener('click', () => {
+    if (introIndex < introSlides().length - 1) showIntro(introIndex + 1);
+    else closeIntro();
+  });
+  $('#intro-skip').addEventListener('click', closeIntro);
+  $('#btn-rules').addEventListener('click', () => showIntro(0));
   $('#toggle-markers').addEventListener('change', renderBoard);
   document.addEventListener('keydown', (e) => {
     const playing = !$('#game').hidden && $('#overlay').hidden;

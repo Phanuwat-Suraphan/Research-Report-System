@@ -11,6 +11,7 @@ const MIME = {
   '.doc': 'application/msword',
   '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   '.svg': 'image/svg+xml',
+  '.webp': 'image/webp',
   '.json': 'application/json; charset=utf-8',
   '.html': 'text/html; charset=utf-8',
 };

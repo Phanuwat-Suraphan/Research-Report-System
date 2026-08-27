@@ -14,10 +14,25 @@
   <div class="topbar">
     <h1 id="game-title">บอร์ดเกมเดินได้</h1>
     <a href="editor.html"><button class="ghost" type="button">แก้ไขกระดาน</button></a>
+    <button class="ghost" type="button" id="btn-sound" aria-pressed="true">🔊 เสียงเปิด</button>
     <button class="ghost" type="button" id="btn-restart" hidden>เริ่มเกมใหม่</button>
   </div>
 
   <!-- ---------- หน้าตั้งค่าก่อนเริ่มเกม ---------- -->
+  <!-- ---------- สไลด์แนะนำกติกาก่อนเริ่มเล่น ---------- -->
+  <section class="intro" id="intro" hidden>
+    <figure class="intro-slide">
+      <img id="intro-img" alt="">
+      <figcaption id="intro-caption"></figcaption>
+    </figure>
+    <div class="intro-nav">
+      <button class="ghost" type="button" id="intro-prev">ย้อนกลับ</button>
+      <div class="intro-dots" id="intro-dots"></div>
+      <button type="button" id="intro-next">ถัดไป</button>
+    </div>
+    <button class="ghost intro-skip" type="button" id="intro-skip">ข้ามไปตั้งค่าผู้เล่น</button>
+  </section>
+
   <section class="card-panel setup" id="setup">
     <h2>ตั้งค่าผู้เล่น</h2>
     <div class="field">
@@ -37,7 +52,10 @@
       <div class="char-grid" id="char-grid"></div>
       <p class="hint">แตะตัวละครเพื่อกำหนดให้ผู้เล่นที่กำลังเลือกอยู่ (แถวที่มีขอบสีทอง)</p>
     </div>
-    <button type="button" id="btn-start">เริ่มเล่น</button>
+    <div class="setup-actions">
+      <button type="button" id="btn-start">เริ่มเล่น</button>
+      <button class="ghost" type="button" id="btn-rules">ดูกติกาอีกครั้ง</button>
+    </div>
   </section>
 
   <!-- ---------- หน้าจอเกม ---------- -->
@@ -47,7 +65,7 @@
         <div class="map-tabs" id="map-tabs"></div>
         <label class="marker-toggle"><input type="checkbox" id="toggle-markers"> แสดงหมุดช่อง</label>
       </div>
-      <div class="board" id="board"></div>
+      <div class="board-scroll"><div class="board" id="board"></div></div>
     </div>
     <div class="side">
       <div class="card-panel turn-box">
