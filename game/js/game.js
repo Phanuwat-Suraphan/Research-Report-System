@@ -170,6 +170,19 @@
       $('#menu-lesson').addEventListener('click', () => { hideAllScreens(); window.Lesson.start(false); });
     }
     $('#menu-game').addEventListener('click', () => { hideAllScreens(); showIntro(0); });
+
+    // ใบงานพิมพ์ได้ ถามก่อนว่าจะพิมพ์พร้อมเฉลยไหม (ครูมักต้องการทั้งสองแบบ)
+    const wsBtn = $('#menu-worksheet');
+    if (state.lesson && window.Worksheet) {
+      wsBtn.addEventListener('click', () => {
+        const withAnswers = window.confirm(
+          'พิมพ์พร้อมเฉลยหรือไม่?\n\nตกลง = ฉบับคุณครู (มีเฉลยและวิธีทำ)\nยกเลิก = ฉบับนักเรียน (เว้นช่องให้เขียนเอง)'
+        );
+        window.Worksheet.print(state.lesson, { withAnswers });
+      });
+    } else {
+      wsBtn.hidden = true;
+    }
     showMenu();
   }
 

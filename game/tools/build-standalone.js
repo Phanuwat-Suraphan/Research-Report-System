@@ -53,6 +53,7 @@ for (const rel of paths) {
 // ตัวเกมใช้ไฟล์เดียวกับฉบับรันบนเซิร์ฟเวอร์ ต่างกันแค่แหล่งข้อมูล/รูป
 const css = read('css/game.css');
 const lessonJs = read('js/lesson.js');
+const worksheetJs = fs.existsSync(path.join(GAME_DIR, 'js/worksheet.js')) ? read('js/worksheet.js') : '';
 const js = read('js/game.js');
 
 // ดึงเฉพาะเนื้อหาใน <body> ของหน้าเกมมาใช้ต่อ (ตัด script/link ที่จะฝังเองด้านล่าง)
@@ -81,6 +82,9 @@ window.GAME_ASSETS = ${JSON.stringify(assets)};
 </script>
 <script>
 ${lessonJs}
+</script>
+<script>
+${worksheetJs}
 </script>
 <script>
 ${js}

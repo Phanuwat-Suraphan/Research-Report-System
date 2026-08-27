@@ -27,6 +27,7 @@
       <button type="button" id="menu-lesson">📖 เริ่มบทเรียน</button>
       <button class="ghost" type="button" id="menu-resume" hidden>▶ เรียนต่อจากที่ค้างไว้</button>
       <button class="ghost" type="button" id="menu-game">🎲 ข้ามไปเล่นบอร์ดเกม</button>
+      <button class="ghost" type="button" id="menu-worksheet">🖨️ พิมพ์ใบงาน</button>
     </div>
     <p class="hint menu-note">แนะนำให้เรียนบทเรียนก่อน แล้วค่อยเล่นบอร์ดเกม จะสนุกและเข้าใจกฎมากขึ้น</p>
   </section>
@@ -115,12 +116,16 @@
   </section>
 </div>
 
+<!-- ---------- ใบงานพิมพ์ได้ (ซ่อนไว้ แสดงตอนสั่งพิมพ์) ---------- -->
+<div class="worksheet" id="worksheet" hidden></div>
+
 <!-- ---------- โมดัลการ์ด / ผลลัพธ์ ---------- -->
 <div class="overlay" id="overlay" hidden>
   <div class="modal" id="modal"></div>
 </div>
 
 <script src="js/lesson.js"></script>
+<script src="js/worksheet.js"></script>
 <script src="js/game.js"></script>
 </body>
 </html>
