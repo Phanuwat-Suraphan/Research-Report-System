@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>บอร์ดเกมเดินได้</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pridi:wght@300;400;600&family=Srisakdi:wght@400;700&display=swap">
 <link rel="stylesheet" href="css/game.css">
 </head>
 <body>
@@ -32,7 +35,7 @@
     <div class="field">
       <label>ตัวละครที่เลือกได้</label>
       <div class="char-grid" id="char-grid"></div>
-      <p class="hint">แตะตัวละครเพื่อกำหนดให้ผู้เล่นที่กำลังเลือกอยู่ (แถวที่มีขอบสีน้ำเงิน)</p>
+      <p class="hint">แตะตัวละครเพื่อกำหนดให้ผู้เล่นที่กำลังเลือกอยู่ (แถวที่มีขอบสีทอง)</p>
     </div>
     <button type="button" id="btn-start">เริ่มเล่น</button>
   </section>
@@ -48,18 +51,18 @@
     </div>
     <div class="side">
       <div class="card-panel turn-box">
-        <div class="hint">ตาของ</div>
+        <span class="eyebrow">ตาของ</span>
         <img id="turn-avatar" alt="">
         <div class="name" id="turn-name">—</div>
         <div class="dice" id="dice">🎲</div>
         <button type="button" id="btn-roll">ทอยลูกเต๋า</button>
       </div>
       <div class="card-panel">
-        <strong>ผู้เล่น</strong>
+        <div class="panel-title">ผู้เล่น</div>
         <ul class="players" id="players"></ul>
       </div>
       <div class="card-panel">
-        <strong>บันทึกการเล่น</strong>
+        <div class="panel-title">บันทึกการเล่น</div>
         <div class="log" id="log"></div>
       </div>
     </div>

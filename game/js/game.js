@@ -26,8 +26,18 @@
     setupIndex: 0, // ผู้เล่นแถวที่กำลังเลือกตัวละครอยู่
   };
 
-  // ---------- โหลด config ----------
+  // ---------- รูปภาพและ config ----------
+  // ฉบับไฟล์เดียว (แชร์เป็นลิงก์) จะฝังรูปเป็น data URI ไว้ใน GAME_ASSETS
+  // และฝังข้อมูลไว้ใน GAME_DATA ส่วนฉบับรันบนเซิร์ฟเวอร์จะ fetch ไฟล์ตามปกติ
+  const ASSETS = window.GAME_ASSETS || {};
+  function asset(path) { return ASSETS[path] || path || ''; }
+
   async function loadJson(path) {
+    const embedded = window.GAME_DATA;
+    if (embedded) {
+      const key = path.replace(/^data\//, '').replace(/\.json$/, '');
+      if (embedded[key]) return embedded[key];
+    }
     const res = await fetch(path, { cache: 'no-store' });
     if (!res.ok) throw new Error(`โหลด ${path} ไม่สำเร็จ (${res.status})`);
     return res.json();
@@ -86,8 +96,8 @@
       const ch = charById(p.charId);
       const row = document.createElement('div');
       row.className = 'player-row';
-      if (i === state.setupIndex) row.style.borderColor = 'var(--accent)';
-      row.innerHTML = `<img src="${ch ? ch.image : ''}" alt="">
+      if (i === state.setupIndex) row.classList.add('active');
+      row.innerHTML = `<img src="${ch ? asset(ch.image) : ''}" alt="">
         <input type="text" value="${escapeHtml(p.name)}" aria-label="ชื่อผู้เล่น ${i + 1}">`;
       row.querySelector('input').addEventListener('input', (e) => { p.name = e.target.value; });
       row.addEventListener('click', () => { state.setupIndex = i; renderSetup(); });
@@ -102,7 +112,7 @@
       el.className = 'char-pick';
       if (owner === state.setupIndex) el.classList.add('selected');
       else if (owner >= 0) el.classList.add('taken');
-      el.innerHTML = `<img src="${ch.image}" alt="${escapeHtml(ch.name)}">
+      el.innerHTML = `<img src="${asset(ch.image)}" alt="${escapeHtml(ch.name)}">
         <div>${escapeHtml(ch.name)}</div>
         <div class="who">${owner >= 0 ? escapeHtml(state.players[owner].name) : 'ว่าง'}</div>`;
       el.addEventListener('click', () => {
@@ -125,7 +135,6 @@
     if (idx >= 0) return idx;
     return state.board.spaces.findIndex((x) => !x.display && String(x.id) === target);
   }
-  function mapOf(space) { return (state.board.maps || []).find((m) => m.id === space.map) || null; }
 
   function showMap(mapId) {
     if (state.activeMap === mapId) return;
@@ -157,7 +166,7 @@
     if (map) {
       const img = document.createElement('img');
       img.className = 'board-img';
-      img.src = map.image;
+      img.src = asset(map.image);
       img.alt = map.name || '';
       img.addEventListener('error', () => {
         img.remove();
@@ -177,6 +186,7 @@
       const el = document.createElement('div');
       el.className = 'space' + (showMarkers ? '' : ' hidden-marker');
       el.dataset.type = s.type;
+      if (s.deck) el.dataset.card = s.deck;
       el.dataset.index = String(i);
       el.style.left = s.x + '%';
       el.style.top = s.y + '%';
@@ -192,7 +202,7 @@
       const token = document.createElement('div');
       token.className = 'token' + (i === state.turn ? ' is-turn' : '');
       token.id = 'token-' + i;
-      token.innerHTML = `<img src="${ch ? ch.image : ''}" alt="${escapeHtml(p.name)}">`;
+      token.innerHTML = `<img src="${ch ? asset(ch.image) : ''}" alt="${escapeHtml(p.name)}">`;
       positionToken(token, p, i);
       board.appendChild(token);
     });
@@ -223,7 +233,7 @@
   function renderSide() {
     const cur = state.players[state.turn];
     const ch = charById(cur.charId);
-    $('#turn-avatar').src = ch ? ch.image : '';
+    $('#turn-avatar').src = ch ? asset(ch.image) : '';
     $('#turn-name').textContent = cur.name;
 
     const ul = $('#players');
@@ -231,15 +241,17 @@
     state.players.forEach((p, i) => {
       const c = charById(p.charId);
       const s = spaceAt(p.pos);
-      const map = mapOf(s);
       const li = document.createElement('li');
       if (i === state.turn) li.className = 'current';
       const where = s.display || s.id;
       const status = p.finishedAt ? 'เข้าเส้นชัยแล้ว' : p.skipTurns > 0 ? `หยุด ${p.skipTurns} ตา` : '';
-      li.innerHTML = `<img src="${c ? c.image : ''}" alt="">
-        <span class="pname">${escapeHtml(p.name)}</span>
-        <span class="pmeta">ช่อง ${where}${map && state.board.maps.length > 1 ? ' · ' + escapeHtml(map.name.split('·')[0].trim()) : ''}
-        · ${p.points} คะแนน${status ? ' · ' + status : ''}</span>`;
+      const pct = Math.round((p.pos / lastIndex()) * 100);
+      li.innerHTML = `<img src="${c ? asset(c.image) : ''}" alt="">
+        <div>
+          <div class="pname">${escapeHtml(p.name)}</div>
+          <div class="pmeta">ช่อง ${where} · ${p.points} คะแนน${status ? ' · ' + status : ''}</div>
+          <span class="prog"><i style="width:${pct}%"></i></span>
+        </div>`;
       ul.appendChild(li);
     });
   }
@@ -422,10 +434,11 @@
   function showCardModal({ title, text, color = '#2f6bd8', image, back }) {
     return new Promise((resolve) => {
       const modal = $('#modal');
+      modal.style.setProperty('--deck-color', color);
       modal.innerHTML = `
-        <span class="deck-name" style="background:${color}">${escapeHtml(title || '')}</span>
-        ${back ? `<img class="card-img" src="${back}" alt="" style="max-height:150px">` : ''}
-        ${image ? `<img class="card-img" src="${image}" alt="">` : ''}
+        <span class="deck-name">${escapeHtml(title || '')}</span>
+        ${back ? `<img class="card-img" src="${asset(back)}" alt="">` : ''}
+        ${image ? `<img class="card-img" src="${asset(image)}" alt="">` : ''}
         <p>${escapeHtml(text || '')}</p>
         <button type="button" id="modal-ok">ตกลง</button>`;
       $('#overlay').hidden = false;
@@ -437,10 +450,11 @@
   function showQuizModal(deck, card, player) {
     return new Promise((resolve) => {
       const modal = $('#modal');
+      modal.style.setProperty('--deck-color', deck.color);
       modal.innerHTML = `
-        <span class="deck-name" style="background:${deck.color}">${escapeHtml(deck.name)}</span>
+        <span class="deck-name">${escapeHtml(deck.name)}</span>
         <h3>${escapeHtml(card.title || '')}</h3>
-        ${card.image ? `<img class="card-img" src="${card.image}" alt="">` : ''}
+        ${card.image ? `<img class="card-img" src="${asset(card.image)}" alt="">` : ''}
         <p>${escapeHtml(card.text)}</p>
         <div class="options"></div>
         <p class="hint">${escapeHtml(player.name)} เป็นผู้ตอบ</p>`;

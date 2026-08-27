@@ -3,3 +3,6 @@ node_modules/
 !/data/.gitkeep
 *.log
 .env
+
+# ไฟล์รวมไฟล์เดียว สร้างใหม่ได้ด้วย node game/tools/build-standalone.js
+game/standalone.html
