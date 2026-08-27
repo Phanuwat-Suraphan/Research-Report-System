@@ -26,10 +26,14 @@ function dataUri(rel) {
 const board = readJson('data/board.json');
 const cards = readJson('data/cards.json');
 const characters = readJson('data/characters.json');
+const lesson = fs.existsSync(path.join(GAME_DIR, 'data/lesson.json')) ? readJson('data/lesson.json') : null;
 
 // เก็บทุก path รูปที่ข้อมูลอ้างถึง แล้วแปลงเป็น data URI
 const paths = new Set();
 (board.intro || []).forEach((slide) => slide.image && paths.add(slide.image));
+if (lesson) {
+  (lesson.chapters || []).forEach((ch) => (ch.slides || []).forEach((slide) => slide.image && paths.add(slide.image)));
+}
 (board.maps || []).forEach((m) => m.image && paths.add(m.image));
 (characters.characters || []).forEach((c) => c.image && paths.add(c.image));
 Object.values(cards.decks || {}).forEach((deck) => {
@@ -48,6 +52,7 @@ for (const rel of paths) {
 
 // ตัวเกมใช้ไฟล์เดียวกับฉบับรันบนเซิร์ฟเวอร์ ต่างกันแค่แหล่งข้อมูล/รูป
 const css = read('css/game.css');
+const lessonJs = read('js/lesson.js');
 const js = read('js/game.js');
 
 // ดึงเฉพาะเนื้อหาใน <body> ของหน้าเกมมาใช้ต่อ (ตัด script/link ที่จะฝังเองด้านล่าง)
@@ -71,8 +76,11 @@ ${css}
 ${body}
 
 <script>
-window.GAME_DATA = ${JSON.stringify({ board, cards, characters })};
+window.GAME_DATA = ${JSON.stringify({ board, cards, characters, lesson })};
 window.GAME_ASSETS = ${JSON.stringify(assets)};
+</script>
+<script>
+${lessonJs}
 </script>
 <script>
 ${js}

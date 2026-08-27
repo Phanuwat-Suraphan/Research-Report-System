@@ -92,14 +92,16 @@
 
   async function boot() {
     try {
-      const [board, cards, chars] = await Promise.all([
+      const [board, cards, chars, lesson] = await Promise.all([
         loadJson('data/board.json'),
         loadJson('data/cards.json'),
         loadJson('data/characters.json'),
+        loadJson('data/lesson.json').catch(() => null),
       ]);
       state.board = board;
       state.cards = cards;
       state.characters = chars.characters || [];
+      state.lesson = lesson;
     } catch (err) {
       $('#setup').innerHTML = `<h2>เปิดเกมไม่ได้</h2><p>${err.message}</p>
         <p class="hint">ถ้าเปิดไฟล์ด้วย file:// เบราว์เซอร์จะบล็อกการโหลด JSON — ให้รันผ่านเซิร์ฟเวอร์
@@ -109,7 +111,7 @@
     document.title = state.board.name || document.title;
     $('#game-title').textContent = state.board.name || 'บอร์ดเกมเดินได้';
 
-    if (introSlides().length) showIntro(0);
+    setupMenu();
     setMuted(muted);
     renderSetup();
 
@@ -133,6 +135,44 @@
     }
   }
 
+  // ---------- เมนูหลัก ----------
+  // ครูเลือกได้ว่าจะพานักเรียนเรียนก่อน หรือข้ามไปเล่นบอร์ดเกมเลย
+  function hideAllScreens() {
+    ['#menu', '#lesson', '#intro', '#setup', '#game'].forEach((sel) => {
+      const el = $(sel);
+      if (el) el.hidden = true;
+    });
+  }
+
+  function showMenu() {
+    hideAllScreens();
+    $('#menu').hidden = false;
+  }
+
+  function setupMenu() {
+    const slides = introSlides();
+    const cover = slides.length ? slides[0].image : null;
+    if (cover) $('#menu-cover-img').src = asset(cover);
+    else $('.menu-cover').hidden = true;
+
+    if (state.lesson) {
+      $('#menu-lead').textContent = state.lesson.subtitle || '';
+    } else {
+      $('#menu-lesson').hidden = true;
+      $('#menu-lead').textContent = state.board.goal || '';
+    }
+
+    if (state.lesson && window.Lesson) {
+      window.Lesson.init(state.lesson, { onFinish: () => { hideAllScreens(); showIntro(0); } });
+      const saved = window.Lesson.hasProgress();
+      $('#menu-resume').hidden = !saved;
+      $('#menu-resume').addEventListener('click', () => { hideAllScreens(); window.Lesson.start(true); });
+      $('#menu-lesson').addEventListener('click', () => { hideAllScreens(); window.Lesson.start(false); });
+    }
+    $('#menu-game').addEventListener('click', () => { hideAllScreens(); showIntro(0); });
+    showMenu();
+  }
+
   // ---------- สไลด์แนะนำกติกา ----------
   // ครูเปิดให้นักเรียนดูก่อนเล่น แล้วกดข้ามได้ถ้าเคยดูแล้ว
   let introIndex = 0;
@@ -148,6 +188,8 @@
     const slide = slides[introIndex];
 
     $('#intro').hidden = false;
+    $('#menu').hidden = true;
+    $('#lesson').hidden = true;
     $('#setup').hidden = true;
     $('#intro-img').src = asset(slide.image);
     $('#intro-img').alt = slide.caption || '';
@@ -171,6 +213,9 @@
     $('#intro').hidden = true;
     $('#setup').hidden = false;
   }
+
+  // ปุ่ม "ดูกติกาอีกครั้ง" กลับมาที่สไลด์กติกา ไม่ใช่บทเรียน
+
 
   // ---------- หน้าตั้งค่าผู้เล่น ----------
   function defaultPlayers(count) {

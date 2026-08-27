@@ -10,6 +10,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const cards = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'cards.json'), 'utf8'));
+
+// โจทย์ในบทเรียนตรวจด้วยเกณฑ์เดียวกัน โดยมองเป็นอีกสำรับหนึ่ง
+let lessonDeck = null;
+try {
+  const lesson = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'lesson.json'), 'utf8'));
+  const items = (lesson.chapters || []).flatMap((ch) => (ch.slides || []).filter((s) => s.type === 'practice'));
+  if (items.length) lessonDeck = { name: 'บทเรียน', cards: items, lesson: true };
+} catch { /* ไม่มีไฟล์บทเรียนก็ตรวจเฉพาะการ์ดเกม */ }
+if (lessonDeck) cards.decks.lesson = lessonDeck;
 const num = (s) => Number(String(s).replace(/,/g, ''));
 
 let checked = 0;
@@ -51,8 +60,10 @@ for (const [deckId, deck] of Object.entries(cards.decks)) {
     }
     if (card.options.length < 3) problems.push(`${where}: ตัวเลือกน้อยกว่า 3 ตัว`);
     if (!card.steps) problems.push(`${where}: ไม่มีวิธีทำ (steps)`);
-    if (!card.reward) problems.push(`${where}: ไม่มีผลตอบแทนเมื่อตอบถูก (reward)`);
-    if (!card.penalty) problems.push(`${where}: ไม่มีบทลงโทษเมื่อตอบผิด (penalty)`);
+    if (!deck.lesson) {
+      if (!card.reward) problems.push(`${where}: ไม่มีผลตอบแทนเมื่อตอบถูก (reward)`);
+      if (!card.penalty) problems.push(`${where}: ไม่มีบทลงโทษเมื่อตอบผิด (penalty)`);
+    }
   }
 }
 
