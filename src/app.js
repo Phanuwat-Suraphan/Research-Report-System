@@ -23,6 +23,7 @@ const { adminSubjectsPage } = require('./pages/adminSubjects');
 const { changePasswordPage } = require('./pages/changePassword');
 
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
+const GAME_DIR = path.join(__dirname, '..', 'game');
 
 function withFlash(location, type, message) {
   const url = new URL(location, 'http://internal');
@@ -486,6 +487,14 @@ async function handleRequest(req, res) {
 
   if (pathname.startsWith('/css/') || pathname.startsWith('/js/')) {
     return serveFromDir(res, PUBLIC_DIR, pathname);
+  }
+
+  // บอร์ดเกม "เดินได้" — มินิแอปแยกต่างหากใน game/ เปิดให้เล่นได้โดยไม่ต้อง login
+  if (pathname === '/game' || pathname === '/game/') {
+    return serveFromDir(res, GAME_DIR, 'index.html');
+  }
+  if (pathname.startsWith('/game/')) {
+    return serveFromDir(res, GAME_DIR, pathname.slice('/game/'.length));
   }
 
   const cookies = parseCookies(req);

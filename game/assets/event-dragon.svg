@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <rect width="300" height="300" fill="#fdecec" rx="18"/>
+  <ellipse cx="150" cy="150" rx="70" ry="46" fill="#5fb26a"/>
+  <path d="M95 130l-30-20 10 30z" fill="#3f8a4c"/>
+  <path d="M205 130l30-20-10 30z" fill="#3f8a4c"/>
+  <circle cx="125" cy="140" r="6" fill="#1e2a3a"/>
+  <circle cx="175" cy="140" r="6" fill="#1e2a3a"/>
+  <path d="M120 170q30 20 60 0" stroke="#1e2a3a" stroke-width="4" fill="none"/>
+  <path d="M150 190c10 20 30 26 44 20-8 16-30 26-48 18z" fill="#f5b70a"/>
+  <text x="150" y="270" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#a3161b">มังกรพ่นไฟ</text>
+</svg>

@@ -1,0 +1,8 @@
+{
+  "characters": [
+    { "id": "wizard", "name": "พ่อมด",   "image": "assets/char-wizard.png", "color": "#2f6bd8" },
+    { "id": "knight", "name": "อัศวิน",  "image": "assets/char-knight.png", "color": "#e5484d" },
+    { "id": "dragon", "name": "มังกรน้อย", "image": "assets/char-dragon.png", "color": "#f5b70a" },
+    { "id": "elf",    "name": "เอลฟ์",   "image": "assets/char-elf.png",   "color": "#22a06b" }
+  ]
+}

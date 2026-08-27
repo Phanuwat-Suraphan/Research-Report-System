@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ตัวช่วยวางช่องบนกระดาน</title>
+<link rel="stylesheet" href="css/game.css">
+<style>
+  .editor-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+  @media (max-width: 980px) { .editor-layout { grid-template-columns: 1fr; } }
+  .space.edit { cursor: grab; background: #fff; border-color: #2f6bd8; color: #1e2a3a; }
+  .space.edit.sel { border-color: #e5484d; box-shadow: 0 0 0 4px rgba(229,72,77,.25); }
+  .space.edit.drag { cursor: grabbing; }
+  .space-list { max-height: 320px; overflow-y: auto; margin: 0; padding: 0; }
+  .space-list li { list-style: none; display: flex; gap: 8px; align-items: center; padding: 5px 6px; border-radius: 8px; cursor: pointer; font-size: .9rem; }
+  .space-list li.sel { background: #eef4ff; }
+  .space-list .num { font-weight: 700; min-width: 26px; }
+  .space-list .ty { font-size: .78rem; color: var(--muted); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .row > * { flex: 1; min-width: 120px; }
+  label.small { font-size: .82rem; font-weight: 600; display: block; margin-bottom: 3px; }
+  input, select, textarea { width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+  textarea { min-height: 60px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <h1>ตัวช่วยวางช่องบนกระดาน</h1>
+    <a href="index.html"><button class="ghost" type="button">กลับไปเล่นเกม</button></a>
+  </div>
+
+  <p class="hint">
+    วิธีใช้: เลือกแผนที่ → คลิกบนรูปเพื่อ<strong>เพิ่มช่องใหม่</strong> (ต่อท้ายเส้นทาง) → ลากหมุดเพื่อขยับให้ตรงกับช่องในรูป →
+    แก้ประเภท/ข้อความของช่องทางขวา → กด <strong>ดาวน์โหลด board.json</strong> แล้วนำไปวางทับที่ <code>game/data/board.json</code>
+  </p>
+
+  <div class="editor-layout">
+    <div class="board-shell">
+      <div class="board-bar">
+        <div class="map-tabs" id="map-tabs"></div>
+        <button class="ghost" type="button" id="btn-preview-img">ดูตัวอย่างด้วยรูปในเครื่อง</button>
+        <input type="file" id="file-img" accept="image/*" hidden>
+      </div>
+      <div class="board" id="board"></div>
+    </div>
+
+    <div class="side">
+      <div class="card-panel">
+        <div class="row">
+          <button type="button" id="btn-load">โหลด board.json</button>
+          <button type="button" id="btn-save">ดาวน์โหลด board.json</button>
+        </div>
+        <input type="file" id="file-json" accept="application/json" hidden>
+        <strong>ลำดับเส้นทาง</strong>
+        <ul class="space-list" id="space-list"></ul>
+      </div>
+
+      <div class="card-panel" id="inspector">
+        <strong>รายละเอียดช่อง</strong>
+        <p class="hint" id="no-sel">ยังไม่ได้เลือกช่อง</p>
+        <div id="fields" hidden>
+          <div class="row">
+            <div><label class="small">เลขที่แสดง</label><input type="text" id="f-display"></div>
+            <div><label class="small">ประเภท</label>
+              <select id="f-type">
+                <option value="start">start — จุดเริ่มต้น</option>
+                <option value="normal">normal — ช่องธรรมดา</option>
+                <option value="card">card — จั่วการ์ด</option>
+                <option value="goto">goto — กระโดดไปช่องที่ระบุ</option>
+                <option value="move">move — เดินหน้า/ถอยหลัง</option>
+                <option value="skip">skip — หยุดกี่ตา</option>
+                <option value="points">points — ได้คะแนน</option>
+                <option value="swap">swap — สลับกับผู้เล่นรั้งท้าย</option>
+                <option value="portal">portal — ประตูข้ามแผนที่</option>
+                <option value="finish">finish — เส้นชัย</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div><label class="small">ค่า (value)</label><input type="number" id="f-value"></div>
+            <div><label class="small">สำรับการ์ด (เฉพาะ card)</label><input type="text" id="f-deck" placeholder="quiz / chance"></div>
+          </div>
+          <div class="row"><div><label class="small">ข้อความอธิบาย</label><textarea id="f-label"></textarea></div></div>
+          <div class="row">
+            <div><label class="small">x (%)</label><input type="number" step="0.1" id="f-x"></div>
+            <div><label class="small">y (%)</label><input type="number" step="0.1" id="f-y"></div>
+          </div>
+          <div class="row">
+            <button class="ghost" type="button" id="btn-up">เลื่อนขึ้น</button>
+            <button class="ghost" type="button" id="btn-down">เลื่อนลง</button>
+            <button type="button" id="btn-del" style="background:#e5484d">ลบช่องนี้</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="js/editor.js"></script>
+</body>
+</html>

@@ -11,6 +11,8 @@ const MIME = {
   '.doc': 'application/msword',
   '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   '.svg': 'image/svg+xml',
+  '.json': 'application/json; charset=utf-8',
+  '.html': 'text/html; charset=utf-8',
 };
 
 // Serves a file from `rootDir` given a URL-decoded relative path, rejecting

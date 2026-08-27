@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>บอร์ดเกมเดินได้</title>
+<link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <h1 id="game-title">บอร์ดเกมเดินได้</h1>
+    <a href="editor.html"><button class="ghost" type="button">แก้ไขกระดาน</button></a>
+    <button class="ghost" type="button" id="btn-restart" hidden>เริ่มเกมใหม่</button>
+  </div>
+
+  <!-- ---------- หน้าตั้งค่าก่อนเริ่มเกม ---------- -->
+  <section class="card-panel setup" id="setup">
+    <h2>ตั้งค่าผู้เล่น</h2>
+    <div class="field">
+      <label for="player-count">จำนวนผู้เล่น</label>
+      <select id="player-count">
+        <option value="2">2 คน</option>
+        <option value="3">3 คน</option>
+        <option value="4">4 คน</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>ตั้งชื่อและเลือกตัวละคร</label>
+      <div class="player-rows" id="player-rows"></div>
+    </div>
+    <div class="field">
+      <label>ตัวละครที่เลือกได้</label>
+      <div class="char-grid" id="char-grid"></div>
+      <p class="hint">แตะตัวละครเพื่อกำหนดให้ผู้เล่นที่กำลังเลือกอยู่ (แถวที่มีขอบสีน้ำเงิน)</p>
+    </div>
+    <button type="button" id="btn-start">เริ่มเล่น</button>
+  </section>
+
+  <!-- ---------- หน้าจอเกม ---------- -->
+  <section class="game-layout" id="game" hidden>
+    <div class="board-shell">
+      <div class="board-bar">
+        <div class="map-tabs" id="map-tabs"></div>
+        <label class="marker-toggle"><input type="checkbox" id="toggle-markers"> แสดงหมุดช่อง</label>
+      </div>
+      <div class="board" id="board"></div>
+    </div>
+    <div class="side">
+      <div class="card-panel turn-box">
+        <div class="hint">ตาของ</div>
+        <img id="turn-avatar" alt="">
+        <div class="name" id="turn-name">—</div>
+        <div class="dice" id="dice">🎲</div>
+        <button type="button" id="btn-roll">ทอยลูกเต๋า</button>
+      </div>
+      <div class="card-panel">
+        <strong>ผู้เล่น</strong>
+        <ul class="players" id="players"></ul>
+      </div>
+      <div class="card-panel">
+        <strong>บันทึกการเล่น</strong>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ---------- โมดัลการ์ด / ผลลัพธ์ ---------- -->
+<div class="overlay" id="overlay" hidden>
+  <div class="modal" id="modal"></div>
+</div>
+
+<script src="js/game.js"></script>
+</body>
+</html>
