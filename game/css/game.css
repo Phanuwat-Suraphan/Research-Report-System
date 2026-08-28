@@ -669,3 +669,12 @@ body.printing .wrap { display: none; }
 
 /* แถบบนลอยเหนือฉากมืดของการ์ด ปุ่มหน้าแรกจึงกดได้ตลอดแม้การ์ดเปิดค้างอยู่ */
 .topbar { position: relative; z-index: 60; }
+
+/* ---------- ปุ่มอ่านออกเสียง ---------- */
+#lesson-speak { padding: 7px 16px; font-size: .92rem; }
+#lesson-speak.speaking {
+  background: linear-gradient(180deg, #f7cd6a, var(--gold));
+  color: #2a1c05; border-color: var(--gold-dim); font-weight: 600;
+}
+#lesson-speak.speaking::after { content: ' · แตะเพื่อหยุด'; font-weight: 400; }
+.lesson-head { flex-wrap: wrap; }

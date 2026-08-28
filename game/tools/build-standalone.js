@@ -12,7 +12,11 @@ const path = require('node:path');
 const GAME_DIR = path.join(__dirname, '..');
 const OUT = process.argv[2] || path.join(GAME_DIR, 'standalone.html');
 
-const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.webp': 'image/webp' };
+const MIME = {
+  '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+  '.svg': 'image/svg+xml', '.webp': 'image/webp',
+  '.mp3': 'audio/mpeg', '.m4a': 'audio/mp4', '.ogg': 'audio/ogg', '.wav': 'audio/wav',
+};
 
 const read = (rel) => fs.readFileSync(path.join(GAME_DIR, rel), 'utf8');
 const readJson = (rel) => JSON.parse(read(rel));
@@ -32,7 +36,10 @@ const lesson = fs.existsSync(path.join(GAME_DIR, 'data/lesson.json')) ? readJson
 const paths = new Set();
 (board.intro || []).forEach((slide) => slide.image && paths.add(slide.image));
 if (lesson) {
-  (lesson.chapters || []).forEach((ch) => (ch.slides || []).forEach((slide) => slide.image && paths.add(slide.image)));
+  (lesson.chapters || []).forEach((ch) => (ch.slides || []).forEach((slide) => {
+    if (slide.image) paths.add(slide.image);
+    if (slide.audio) paths.add(slide.audio);   // ไฟล์เสียงพากย์ ถ้ามี
+  }));
 }
 (board.maps || []).forEach((m) => m.image && paths.add(m.image));
 (characters.characters || []).forEach((c) => c.image && paths.add(c.image));
@@ -92,5 +99,10 @@ ${js}
 `;
 
 fs.writeFileSync(OUT, out);
-const mb = (Buffer.byteLength(out) / 1024 / 1024).toFixed(2);
-console.log(`สร้าง ${OUT} แล้ว (${mb} MB, ฝังรูป ${Object.keys(assets).length} ไฟล์)`);
+const bytes = Buffer.byteLength(out);
+const mb = (bytes / 1024 / 1024).toFixed(2);
+console.log(`สร้าง ${OUT} แล้ว (${mb} MB, ฝังไฟล์สื่อ ${Object.keys(assets).length} ไฟล์)`);
+if (bytes > 15 * 1024 * 1024) {
+  console.warn(`เตือน: ไฟล์ใหญ่เกิน 15 MB แล้ว ใกล้ขีดจำกัด 16 MB ของ Artifact
+  ลองลดบิตเรตไฟล์เสียง หรือแยกไฟล์เสียงออกไปไว้บนเว็บแทนการฝังในไฟล์เดียว`);
+}

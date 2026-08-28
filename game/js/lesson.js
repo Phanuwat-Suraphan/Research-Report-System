@@ -17,6 +17,89 @@
 
   const state = { data: null, flat: [], index: 0, answers: {}, onFinish: null };
 
+  // ---------- เสียงอ่านให้ฟัง ----------
+  // ใช้เสียงอ่านภาษาไทยที่มีอยู่ในเครื่อง (Web Speech API) จึงไม่ต้องแนบไฟล์เสียง
+  // ถ้าสไลด์ไหนระบุฟิลด์ "audio" ไว้ จะเล่นไฟล์เสียงนั้นแทน (เสียงพากย์จริงคุณภาพดีกว่า)
+  let thaiVoice = null;
+  let voiceReady = false;
+  let audioEl = null;
+
+  function loadVoices() {
+    if (!('speechSynthesis' in window)) return;
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices.length) return;
+    thaiVoice = voices.find((v) => v.lang && v.lang.toLowerCase().startsWith('th')) || null;
+    voiceReady = true;
+    const btn = $('#lesson-speak');
+    if (btn) btn.hidden = !thaiVoice;
+  }
+
+  if ('speechSynthesis' in window) {
+    loadVoices();
+    window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+  }
+
+  function stopSpeaking() {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    if (audioEl) { audioEl.pause(); audioEl = null; }
+    const btn = $('#lesson-speak');
+    if (btn) btn.classList.remove('speaking');
+  }
+
+  // ข้อความที่จะอ่าน ต่างกันตามชนิดสไลด์
+  function speakableText(s) {
+    const parts = [];
+    if (s.type === 'story') parts.push(s.title, s.text);
+    else if (s.type === 'rule') {
+      parts.push(s.title);
+      (s.steps || []).forEach((st) => parts.push(`ข้อ ${st.no} ${st.name} ${st.detail}`));
+      parts.push(s.note);
+    } else if (s.type === 'teach') {
+      parts.push(s.title, s.question, s.story);
+      (s.walkthrough || []).forEach((w) => parts.push(`${w.label} ${w.math} ${w.say || ''}`));
+      if (s.answer) parts.push(`คำตอบคือ ${s.answer}`);
+      parts.push(s.moral);
+    } else if (s.type === 'practice') {
+      parts.push(s.title, s.text, s.equation);
+    } else if (s.type === 'finish') {
+      const { correct, total } = score();
+      parts.push(`ทำโจทย์ฝึกถูก ${correct} จาก ${total} ข้อ`);
+    }
+    return parts.filter(Boolean).join(' ');
+  }
+
+  function speakSlide() {
+    const s = state.flat[state.index];
+    const btn = $('#lesson-speak');
+
+    if (btn && btn.classList.contains('speaking')) { stopSpeaking(); return; }
+    stopSpeaking();
+
+    // เสียงพากย์จริงมาก่อนเสมอ ถ้ามี
+    if (s.audio) {
+      audioEl = new Audio(asset(s.audio));
+      audioEl.addEventListener('ended', stopSpeaking);
+      audioEl.addEventListener('error', stopSpeaking);
+      audioEl.play().catch(stopSpeaking);
+      if (btn) btn.classList.add('speaking');
+      return;
+    }
+
+    if (!('speechSynthesis' in window)) return;
+    const text = speakableText(s);
+    if (!text) return;
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'th-TH';
+    if (thaiVoice) utter.voice = thaiVoice;
+    utter.rate = 0.92;   // ช้ากว่าปกติเล็กน้อย ให้เด็กตามทัน
+    utter.addEventListener('end', stopSpeaking);
+    utter.addEventListener('error', stopSpeaking);
+    window.speechSynthesis.speak(utter);
+    if (btn) btn.classList.add('speaking');
+  }
+
+
+
   // รวมสไลด์ทุกบทเป็นลำดับเดียว พร้อมจำว่าแต่ละสไลด์อยู่บทไหน
   function flatten(data) {
     const out = [];
@@ -240,6 +323,7 @@
   }
 
   function render() {
+    stopSpeaking();
     const s = state.flat[state.index];
     const stage = $('#lesson-stage');
     stage.className = 'lesson-stage type-' + s.type;
@@ -283,8 +367,12 @@
 
       $('#lesson-prev').addEventListener('click', () => go(-1));
       $('#lesson-next').addEventListener('click', () => go(1));
-      $('#lesson-finish-btn').addEventListener('click', () => { clearProgress(); onFinish(); });
-      $('#lesson-skip').addEventListener('click', () => onFinish());
+      $('#lesson-finish-btn').addEventListener('click', () => { stopSpeaking(); clearProgress(); onFinish(); });
+      $('#lesson-skip').addEventListener('click', () => { stopSpeaking(); onFinish(); });
+      $('#lesson-speak').addEventListener('click', speakSlide);
+      // ปุ่มจะโผล่เมื่อเครื่องมีเสียงอ่านภาษาไทย หรือมีไฟล์เสียงพากย์แนบมา
+      const hasVoiceOver = flatten(data).some((s) => s.audio);
+      $('#lesson-speak').hidden = !(hasVoiceOver || (voiceReady && thaiVoice));
 
       document.addEventListener('keydown', (e) => {
         if ($('#lesson').hidden) return;
