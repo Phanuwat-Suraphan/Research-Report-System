@@ -48,14 +48,10 @@
     if (!window.Speech) return;
     const slide = state.flat[state.index];
     const btn = $('#lesson-speak');
-    const result = window.Speech.speak(speakableText(slide), {
+    window.Speech.speak(speakableText(slide), {
       audioUrl: slide.audio ? asset(slide.audio) : null,
       button: btn,
     });
-    if (result === 'unsupported') {
-      btn.textContent = '🔇 เครื่องนี้อ่านออกเสียงไม่ได้';
-      btn.disabled = true;
-    }
   }
 
   // รวมสไลด์ทุกบทเป็นลำดับเดียว พร้อมจำว่าแต่ละสไลด์อยู่บทไหน
