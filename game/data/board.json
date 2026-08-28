@@ -21,13 +21,13 @@
     {
       "id": "map1",
       "name": "แผนที่ 1 · ป่าพิศวง",
-      "image": "assets/map1.png",
+      "image": "assets/map1.webp",
       "aspectRatio": "1376 / 768"
     },
     {
       "id": "map2",
       "name": "แผนที่ 2 · ถ้ำคริสตัลสู่ปราสาท",
-      "image": "assets/map2.png",
+      "image": "assets/map2.webp",
       "aspectRatio": "1376 / 768"
     }
   ],
