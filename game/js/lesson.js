@@ -18,33 +18,9 @@
   const state = { data: null, flat: [], index: 0, answers: {}, onFinish: null };
 
   // ---------- เสียงอ่านให้ฟัง ----------
-  // ใช้เสียงอ่านภาษาไทยที่มีอยู่ในเครื่อง (Web Speech API) จึงไม่ต้องแนบไฟล์เสียง
-  // ถ้าสไลด์ไหนระบุฟิลด์ "audio" ไว้ จะเล่นไฟล์เสียงนั้นแทน (เสียงพากย์จริงคุณภาพดีกว่า)
-  let thaiVoice = null;
-  let voiceReady = false;
-  let audioEl = null;
-
-  function loadVoices() {
-    if (!('speechSynthesis' in window)) return;
-    const voices = window.speechSynthesis.getVoices();
-    if (!voices.length) return;
-    thaiVoice = voices.find((v) => v.lang && v.lang.toLowerCase().startsWith('th')) || null;
-    voiceReady = true;
-    const btn = $('#lesson-speak');
-    if (btn) btn.hidden = !thaiVoice;
-  }
-
-  if ('speechSynthesis' in window) {
-    loadVoices();
-    window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
-  }
-
-  function stopSpeaking() {
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    if (audioEl) { audioEl.pause(); audioEl = null; }
-    const btn = $('#lesson-speak');
-    if (btn) btn.classList.remove('speaking');
-  }
+  // ปุ่มแสดงตลอด ไม่ซ่อนตามผลตรวจเสียงในเครื่อง เพราะการตรวจไม่น่าเชื่อถือพอ
+  // (บางเบราว์เซอร์คืนรายชื่อเสียงช้าหรือไม่ครบ แต่จริงๆ อ่านภาษาไทยได้)
+  const stopSpeaking = () => window.Speech && window.Speech.stop();
 
   // ข้อความที่จะอ่าน ต่างกันตามชนิดสไลด์
   function speakableText(s) {
@@ -69,36 +45,18 @@
   }
 
   function speakSlide() {
-    const s = state.flat[state.index];
+    if (!window.Speech) return;
+    const slide = state.flat[state.index];
     const btn = $('#lesson-speak');
-
-    if (btn && btn.classList.contains('speaking')) { stopSpeaking(); return; }
-    stopSpeaking();
-
-    // เสียงพากย์จริงมาก่อนเสมอ ถ้ามี
-    if (s.audio) {
-      audioEl = new Audio(asset(s.audio));
-      audioEl.addEventListener('ended', stopSpeaking);
-      audioEl.addEventListener('error', stopSpeaking);
-      audioEl.play().catch(stopSpeaking);
-      if (btn) btn.classList.add('speaking');
-      return;
+    const result = window.Speech.speak(speakableText(slide), {
+      audioUrl: slide.audio ? asset(slide.audio) : null,
+      button: btn,
+    });
+    if (result === 'unsupported') {
+      btn.textContent = '🔇 เครื่องนี้อ่านออกเสียงไม่ได้';
+      btn.disabled = true;
     }
-
-    if (!('speechSynthesis' in window)) return;
-    const text = speakableText(s);
-    if (!text) return;
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = 'th-TH';
-    if (thaiVoice) utter.voice = thaiVoice;
-    utter.rate = 0.92;   // ช้ากว่าปกติเล็กน้อย ให้เด็กตามทัน
-    utter.addEventListener('end', stopSpeaking);
-    utter.addEventListener('error', stopSpeaking);
-    window.speechSynthesis.speak(utter);
-    if (btn) btn.classList.add('speaking');
   }
-
-
 
   // รวมสไลด์ทุกบทเป็นลำดับเดียว พร้อมจำว่าแต่ละสไลด์อยู่บทไหน
   function flatten(data) {
@@ -370,9 +328,7 @@
       $('#lesson-finish-btn').addEventListener('click', () => { stopSpeaking(); clearProgress(); onFinish(); });
       $('#lesson-skip').addEventListener('click', () => { stopSpeaking(); onFinish(); });
       $('#lesson-speak').addEventListener('click', speakSlide);
-      // ปุ่มจะโผล่เมื่อเครื่องมีเสียงอ่านภาษาไทย หรือมีไฟล์เสียงพากย์แนบมา
-      const hasVoiceOver = flatten(data).some((s) => s.audio);
-      $('#lesson-speak').hidden = !(hasVoiceOver || (voiceReady && thaiVoice));
+      $('#lesson-speak').hidden = false;
 
       document.addEventListener('keydown', (e) => {
         if ($('#lesson').hidden) return;

@@ -635,6 +635,7 @@
   let pendingModal = null; // ตัวคลี่คลายสัญญาของโมดัลที่เปิดค้างอยู่
 
   function closeModal() {
+    if (window.Speech) window.Speech.stop();
     $('#overlay').hidden = true;
     $('#modal').innerHTML = '';
     const resolve = pendingModal;
@@ -657,6 +658,19 @@
     modal.prepend(x);
   }
 
+  // ปุ่มอ่านการ์ดให้ฟัง ช่วยเด็กที่อ่านโจทย์ยาวๆ ยังไม่คล่อง
+  function addModalSpeak(text) {
+    const modal = $('#modal');
+    if (!text || !window.Speech || modal.querySelector('.modal-speak')) return;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'modal-speak';
+    b.setAttribute('aria-label', 'อ่านการ์ดให้ฟัง');
+    b.textContent = '🔊';
+    b.addEventListener('click', () => window.Speech.speak(text, { button: b }));
+    modal.prepend(b);
+  }
+
   function showCardModal({ title, text, color = '#2f6bd8', image, back }) {
     return new Promise((resolve) => {
       const modal = $('#modal');
@@ -669,6 +683,7 @@
         <button type="button" id="modal-ok">ตกลง</button>`;
       pendingModal = resolve;
       addModalClose();
+      addModalSpeak([title, text].filter(Boolean).join(' '));
       $('#overlay').hidden = false;
       sfx('card');
       $('#modal-ok').focus();
@@ -756,6 +771,7 @@
 
       pendingModal = () => { document.removeEventListener('keydown', onKey); resolve(null); };
       addModalClose();
+      addModalSpeak(`${card.title || ''} ${card.text} ตัวเลือก ${shuffled.map((o, i) => `ข้อ ${i + 1} ${o.text}`).join(' ')}`);
       $('#overlay').hidden = false;
       box.firstChild.focus();
     });

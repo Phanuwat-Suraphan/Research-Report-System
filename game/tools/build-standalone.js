@@ -59,6 +59,7 @@ for (const rel of paths) {
 
 // ตัวเกมใช้ไฟล์เดียวกับฉบับรันบนเซิร์ฟเวอร์ ต่างกันแค่แหล่งข้อมูล/รูป
 const css = read('css/game.css');
+const speechJs = fs.existsSync(path.join(GAME_DIR, 'js/speech.js')) ? read('js/speech.js') : '';
 const lessonJs = read('js/lesson.js');
 const worksheetJs = fs.existsSync(path.join(GAME_DIR, 'js/worksheet.js')) ? read('js/worksheet.js') : '';
 const js = read('js/game.js');
@@ -86,6 +87,9 @@ ${body}
 <script>
 window.GAME_DATA = ${JSON.stringify({ board, cards, characters, lesson })};
 window.GAME_ASSETS = ${JSON.stringify(assets)};
+</script>
+<script>
+${speechJs}
 </script>
 <script>
 ${lessonJs}

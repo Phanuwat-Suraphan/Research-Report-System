@@ -678,3 +678,14 @@ body.printing .wrap { display: none; }
 }
 #lesson-speak.speaking::after { content: ' · แตะเพื่อหยุด'; font-weight: 400; }
 .lesson-head { flex-wrap: wrap; }
+
+/* ปุ่มอ่านการ์ดให้ฟัง วางคู่กับปุ่มปิดที่มุมบนของการ์ด */
+.modal-speak {
+  position: absolute; top: 10px; left: 10px;
+  width: 34px; height: 34px; padding: 0; min-width: 0;
+  border-radius: 50%; font-size: 1rem; line-height: 1;
+  background: rgba(90, 60, 25, .12); color: #5c4526;
+  border: 1px solid rgba(90, 60, 25, .25); box-shadow: none;
+}
+.modal-speak:hover { background: rgba(90, 60, 25, .22); }
+.modal-speak.speaking { background: var(--gold); color: #2a1c05; border-color: var(--gold-dim); }
