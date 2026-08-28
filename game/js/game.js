@@ -790,12 +790,15 @@
   // ---------- ลำดับตา ----------
   function nextTurn() {
     if (state.finished) return;
-    for (let n = 0; n < state.players.length; n++) {
+    // เดินหาคนถัดไปที่ไม่ติดโทษหยุดเดิน ถ้าทุกคนติดพร้อมกันต้องวนลดโทษต่อไปจนมีคนได้เดิน
+    // (วนแค่เท่าจำนวนผู้เล่นไม่พอ จะหลุดออกมาที่คนที่ยังติดโทษอยู่แล้วให้เขาเดิน)
+    let guard = state.players.length + state.players.reduce((sum, p) => sum + p.skipTurns, 0);
+    while (guard-- > 0) {
       state.turn = (state.turn + 1) % state.players.length;
       const p = state.players[state.turn];
       if (p.skipTurns > 0) {
         p.skipTurns--;
-        log(`${p.name} หยุดเดิน 1 ตา (เหลืออีก ${p.skipTurns} ตา)`);
+        log(`${p.name} หยุดเดิน 1 ตา${p.skipTurns > 0 ? ` (เหลืออีก ${p.skipTurns} ตา)` : ''}`);
         continue;
       }
       break;

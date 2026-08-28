@@ -15,9 +15,9 @@
   --moss:       #6fcf74;
   --sky:        #58a6f0;
 
-  --ink:        #ede6fb;  /* ตัวอักษรหลักบนพื้นมืด เอียงม่วงเล็กน้อยให้เข้ากับพื้น */
+  --ink:        #f2ecff;  /* ตัวอักษรหลักบนพื้นมืด เอียงม่วงเล็กน้อยให้เข้ากับพื้น */
   --ink-dark:   #2a1c14;  /* ตัวอักษรบนกระดาษว่าน */
-  --muted:      #a899c9;
+  --muted:      #c3b6e0;  /* สีรองที่ยังอ่านออกชัดเวลาฉายโปรเจกเตอร์ */
   --line:       rgba(239, 179, 60, .22);
 
   --radius: 14px;
@@ -25,7 +25,8 @@
   --glow: 0 0 24px rgba(239, 179, 60, .25);
 
   --font-display: "Srisakdi", "Noto Serif Thai", Georgia, serif;
-  --font-body: "Pridi", "Noto Serif Thai", Georgia, serif;
+  /* Sarabun เป็นฟอนต์มาตรฐานเอกสารไทย อ่านง่ายที่สุดทั้งบนจอและเวลาฉายขึ้นจอใหญ่ */
+  --font-body: "Sarabun", "Noto Sans Thai", "Segoe UI", system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -33,8 +34,9 @@
 body {
   margin: 0;
   font-family: var(--font-body);
-  font-weight: 300;
-  line-height: 1.6;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.75;
   color: var(--ink);
   background-color: var(--night);
   background-image:
@@ -48,7 +50,7 @@ body {
 /* ---------- ปุ่ม ---------- */
 button {
   font-family: var(--font-body);
-  font-size: 1rem;
+  font-size: 1.02rem;
   font-weight: 600;
   cursor: pointer;
   border: 1px solid var(--gold-dim);
@@ -69,7 +71,7 @@ button.ghost {
   color: var(--ink);
   border-color: var(--line);
   box-shadow: none;
-  font-weight: 400;
+  font-weight: 500;
 }
 button.ghost:hover { background: rgba(63, 44, 112, .9); border-color: var(--gold-dim); }
 
@@ -102,13 +104,13 @@ h2 {
   text-wrap: balance;
 }
 
-.hint { color: var(--muted); font-size: .88rem; }
+.hint { color: var(--muted); font-size: .95rem; }
 
 /* ---------- หน้าตั้งค่าผู้เล่น ---------- */
 .field { margin-bottom: 22px; }
 .field > label {
   display: block; margin-bottom: 9px;
-  font-size: .76rem; font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
+  font-size: .88rem; font-weight: 600; letter-spacing: .08em;
   color: var(--arcane);
 }
 .field select, .player-row input {
@@ -216,13 +218,13 @@ h2 {
 
 .turn-box { text-align: center; }
 .turn-box .eyebrow {
-  font-size: .72rem; letter-spacing: .16em; text-transform: uppercase;
+  font-size: .88rem; letter-spacing: .06em;
   color: var(--arcane); display: block; margin-bottom: 8px;
 }
 .turn-box img { width: 62px; height: 76px; object-fit: contain; }
 .turn-box .name {
   font-family: var(--font-display); font-weight: 700;
-  font-size: 1.35rem; color: var(--gold); margin-top: 2px;
+  font-size: 1.5rem; color: var(--gold); margin-top: 2px;
 }
 
 /* ลูกเต๋าหินสลักรูน */
@@ -243,7 +245,7 @@ h2 {
 }
 
 .panel-title {
-  font-size: .74rem; letter-spacing: .15em; text-transform: uppercase;
+  font-size: .9rem; letter-spacing: .06em;
   color: var(--arcane); margin-bottom: 12px;
 }
 
@@ -256,8 +258,8 @@ h2 {
 }
 .players li.current { background: rgba(239, 179, 60, .1); border-color: var(--line); }
 .players img { width: 34px; height: 42px; object-fit: contain; }
-.players .pname { font-weight: 600; font-size: .95rem; }
-.players .pmeta { font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.players .pname { font-weight: 600; font-size: 1.05rem; }
+.players .pmeta { font-size: .92rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 /* รางความคืบหน้า — เห็นได้ทันทีว่าใครนำใครตาม */
 .players .prog {
   display: block; height: 4px; margin-top: 5px; border-radius: 99px;
@@ -269,7 +271,7 @@ h2 {
   transition: width .3s ease-out;
 }
 
-.log { max-height: 230px; overflow-y: auto; font-size: .86rem; }
+.log { max-height: 250px; overflow-y: auto; font-size: .97rem; }
 .log p {
   margin: 0 0 8px; padding-bottom: 8px;
   border-bottom: 1px solid rgba(239, 179, 60, .12);
@@ -300,16 +302,16 @@ h2 {
 @keyframes pop { from { transform: scale(.92) translateY(10px); opacity: 0 } to { transform: none; opacity: 1 } }
 
 .modal .deck-name {
-  display: inline-block; padding: 5px 16px; border-radius: 99px;
-  font-size: .76rem; font-weight: 600; letter-spacing: .1em;
+  display: inline-block; padding: 6px 18px; border-radius: 99px;
+  font-size: .92rem; font-weight: 600; letter-spacing: .04em;
   color: #fff; background: var(--deck-color, var(--gold));
 }
 .modal h3 {
   font-family: var(--font-display); font-weight: 700;
-  font-size: 1.4rem; margin: 14px 0 8px; color: #3a2410;
+  font-size: 1.6rem; margin: 14px 0 8px; color: #3a2410;
   text-wrap: balance;
 }
-.modal p { margin: 10px 0; }
+.modal p { margin: 12px 0; font-size: 1.08rem; line-height: 1.8; }
 .modal .card-img { max-width: 100%; max-height: 340px; border-radius: 10px; margin: 12px auto; display: block; }
 
 .modal .options { display: grid; gap: 9px; margin: 18px 0 6px; }
@@ -343,22 +345,22 @@ h2 {
 
 /* ---------- เฉลยวิธีทำในการ์ดคำถาม ---------- */
 .modal .steps {
-  text-align: left; margin: 12px 0 4px; padding: 12px 14px;
+  text-align: left; margin: 12px 0 4px; padding: 14px 16px;
   border-radius: 10px; background: rgba(90, 60, 25, .1);
   border-left: 3px solid var(--deck-color, var(--gold));
-  font-size: .93rem; line-height: 1.65;
+  font-size: 1.02rem; line-height: 1.8;
 }
 .modal .rule {
   text-align: left; margin: 8px 0 4px;
-  font-size: .82rem; color: #6b563c; line-height: 1.55;
+  font-size: .92rem; color: #5c4526; line-height: 1.7;
 }
 /* เลขกำกับตัวเลือก บอกว่ากดแป้นไหนได้ */
 .modal .options button { display: flex; align-items: center; gap: 10px; text-align: left; }
 .modal .opt-key {
   flex: none; display: grid; place-items: center;
-  width: 22px; height: 22px; border-radius: 6px;
+  width: 26px; height: 26px; border-radius: 7px;
   background: rgba(90, 60, 25, .16); color: #5c4526;
-  font-size: .78rem; font-weight: 600;
+  font-size: .9rem; font-weight: 600;
 }
 
 /* บนจอเล็ก กระดานย่อจนอ่านเลขช่องไม่ออก จึงให้เลื่อนดูซ้าย-ขวาได้แทนการบีบทั้งภาพ
@@ -384,8 +386,8 @@ h2 {
 }
 .intro-slide img { width: 100%; height: auto; display: block; }
 .intro-slide figcaption {
-  padding: 14px 18px; text-align: center;
-  font-size: .95rem; color: var(--ink);
+  padding: 16px 20px; text-align: center;
+  font-size: 1.08rem; line-height: 1.8; color: var(--ink);
   border-top: 1px solid var(--line);
 }
 .intro-nav { display: flex; align-items: center; gap: 14px; justify-content: space-between; }
@@ -407,16 +409,16 @@ h2 {
   border: 1px solid rgba(239, 179, 60, .35); box-shadow: var(--shadow), var(--glow);
 }
 .menu-cover img { width: 100%; height: auto; display: block; }
-.menu-lead { margin: 0; max-width: 62ch; color: var(--ink); font-size: 1.02rem; }
+.menu-lead { margin: 0; max-width: 60ch; color: var(--ink); font-size: 1.12rem; line-height: 1.85; }
 .menu-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-.menu-actions button { font-size: 1.05rem; padding: 13px 26px; }
+.menu-actions button { font-size: 1.12rem; padding: 15px 28px; }
 .menu-note { margin: 0; }
 
 /* ---------- บทเรียนแบบสไลด์ ---------- */
 .lesson { display: grid; gap: 14px; }
 .lesson-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-.lesson-chapter { font-size: .95rem; font-weight: 600; color: var(--gold); }
-.lesson-count { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.lesson-chapter { font-size: 1.05rem; font-weight: 600; color: var(--gold); }
+.lesson-count { font-size: .95rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 
 .lesson-progress { height: 6px; border-radius: 99px; background: rgba(255, 255, 255, .12); overflow: hidden; }
 .lesson-progress i {
@@ -438,24 +440,24 @@ h2 {
 }
 .lesson-art.problem { max-width: 640px; }
 .lesson-speaker {
-  display: inline-block; margin-bottom: 10px; padding: 5px 15px; border-radius: 99px;
-  font-size: .78rem; font-weight: 600; letter-spacing: .08em;
+  display: inline-block; margin-bottom: 12px; padding: 7px 18px; border-radius: 99px;
+  font-size: .95rem; font-weight: 600; letter-spacing: .02em;
   color: #2a1c05; background: linear-gradient(180deg, #f7cd6a, var(--gold));
 }
-.lesson-text { margin: 0 0 12px; font-size: 1.06rem; line-height: 1.85; max-width: 66ch; }
+.lesson-text { margin: 0 0 14px; font-size: 1.18rem; line-height: 1.95; max-width: 62ch; }
 .lesson-note {
-  margin: 16px 0 0; padding: 13px 16px; border-radius: 12px;
+  margin: 16px 0 0; padding: 15px 18px; border-radius: 12px;
   background: rgba(87, 224, 208, .1); border-left: 3px solid var(--arcane);
-  font-size: .95rem;
+  font-size: 1.05rem; line-height: 1.85;
 }
 .lesson-warn {
-  margin: 14px 0 0; padding: 13px 16px; border-radius: 12px;
+  margin: 14px 0 0; padding: 15px 18px; border-radius: 12px;
   background: rgba(226, 74, 63, .12); border-left: 3px solid var(--ember);
-  font-size: .95rem;
+  font-size: 1.05rem; line-height: 1.85;
 }
 .lesson-expr {
-  font-family: var(--font-display); font-weight: 700;
-  font-size: clamp(1.6rem, 4.5vw, 2.4rem); text-align: center;
+  font-weight: 700;
+  font-size: clamp(1.7rem, 4.5vw, 2.6rem); text-align: center;
   color: var(--gold); padding: 18px; margin-bottom: 16px;
   background: rgba(26, 16, 48, .55); border-radius: 14px; border: 1px solid var(--line);
   font-variant-numeric: tabular-nums;
@@ -475,12 +477,12 @@ h2 {
   font-family: var(--font-display); font-weight: 700; font-size: 1.3rem;
   color: #2a1c05; background: linear-gradient(180deg, #f7cd6a, var(--gold));
 }
-.rule-list strong { color: var(--gold); font-size: 1.05rem; }
-.rule-list p { margin: 4px 0 8px; font-size: .95rem; }
+.rule-list strong { color: var(--gold); font-size: 1.15rem; }
+.rule-list p { margin: 5px 0 9px; font-size: 1.05rem; line-height: 1.8; }
 .rule-list code {
-  display: inline-block; padding: 6px 12px; border-radius: 8px;
+  display: inline-block; padding: 7px 14px; border-radius: 8px;
   background: rgba(87, 224, 208, .12); color: var(--arcane);
-  font-size: .92rem; font-variant-numeric: tabular-nums;
+  font-size: 1.05rem; font-variant-numeric: tabular-nums;
 }
 
 /* ตัวอย่างแบบเทียบผิด-ถูก */
@@ -492,12 +494,12 @@ h2 {
 }
 .compare-card.wrong { border-color: rgba(226, 74, 63, .55); }
 .compare-card.right { border-color: rgba(111, 207, 116, .55); }
-.compare-label { font-size: .8rem; font-weight: 600; letter-spacing: .05em; color: var(--muted); }
-.compare-work { font-size: 1rem; font-variant-numeric: tabular-nums; }
+.compare-label { font-size: .95rem; font-weight: 600; color: var(--muted); }
+.compare-work { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
 .compare-result { font-family: var(--font-display); font-weight: 700; font-size: 1.7rem; }
 .compare-card.wrong .compare-result { color: var(--ember); }
 .compare-card.right .compare-result { color: var(--moss); }
-.compare-why { font-size: .87rem; color: var(--muted); }
+.compare-why { font-size: .98rem; color: var(--muted); line-height: 1.75; }
 
 /* วิธีทำทีละขั้น */
 .walkthrough { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; }
@@ -505,12 +507,12 @@ h2 {
   display: grid; gap: 4px; padding: 14px 16px; border-radius: 12px;
   background: rgba(26, 16, 48, .5); border-left: 3px solid var(--gold);
 }
-.walk-label { font-size: .8rem; font-weight: 600; letter-spacing: .05em; color: var(--arcane); }
-.walk-math { font-size: 1.2rem; font-weight: 600; color: var(--gold); font-variant-numeric: tabular-nums; }
-.walk-say { font-size: .9rem; color: var(--muted); }
+.walk-label { font-size: .95rem; font-weight: 600; color: var(--arcane); }
+.walk-math { font-size: 1.35rem; font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
+.walk-say { font-size: 1.02rem; color: var(--muted); line-height: 1.8; }
 
 /* โจทย์ฝึก */
-.practice-question { font-size: 1.08rem; line-height: 1.85; margin: 0 0 18px; }
+.practice-question { font-size: 1.2rem; line-height: 1.95; margin: 0 0 18px; }
 .practice-options { display: grid; gap: 10px; max-width: 460px; }
 .practice-option {
   display: flex; align-items: center; gap: 12px; text-align: left;
@@ -525,8 +527,8 @@ h2 {
 
 .practice-select { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .practice-select select {
-  flex: 1; min-width: 200px; max-width: 320px;
-  font-family: var(--font-body); font-size: 1.05rem; color: var(--ink);
+  flex: 1; min-width: 200px; max-width: 340px;
+  font-family: var(--font-body); font-size: 1.15rem; color: var(--ink);
   padding: 12px 14px; border-radius: 10px;
   border: 2px solid var(--line); background: rgba(26, 16, 48, .8);
   font-variant-numeric: tabular-nums;
@@ -539,9 +541,9 @@ h2 {
 .practice-feedback.ok { background: rgba(111, 207, 116, .13); border-left: 3px solid var(--moss); }
 .practice-feedback.no { background: rgba(226, 74, 63, .13); border-left: 3px solid var(--ember); }
 .practice-feedback.hint { background: rgba(239, 179, 60, .12); border-left: 3px solid var(--gold); }
-.practice-steps { font-size: .95rem; line-height: 1.75; color: var(--ink); }
+.practice-steps { font-size: 1.08rem; line-height: 1.85; color: var(--ink); }
 .practice-reward {
-  font-size: .95rem; padding: 10px 14px; border-radius: 10px; margin-top: 4px;
+  font-size: 1.05rem; padding: 10px 14px; border-radius: 10px; margin-top: 4px;
   background: rgba(239, 179, 60, .16); color: var(--gold); font-weight: 600;
 }
 .hint-btn { margin-top: 14px; font-size: .9rem; padding: 9px 18px; }
