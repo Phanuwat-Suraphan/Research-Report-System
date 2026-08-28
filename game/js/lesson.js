@@ -183,13 +183,32 @@
     const { correct, total } = score();
     const pass = correct >= (state.data.passScore || 0);
     const f = state.data.finish || {};
+    const wrong = total - correct;
+
+    // สรุปรายข้อ ให้เด็กเห็นว่าผิดข้อไหนและกดกลับไปทบทวนได้ทันที
+    const rows = state.flat
+      .map((s, i) => ({ s, i }))
+      .filter(({ s }) => s.type === 'practice')
+      .map(({ s, i }, n) => {
+        const ok = state.answers[s.key] === 'correct';
+        const answered = !!state.answers[s.key];
+        const label = (s.title || `ด่านที่ ${n + 1}`).replace(/^ด่านที่ \d+ · /, '');
+        return `<li class="recap-row ${answered ? (ok ? 'ok' : 'no') : 'skip'}">
+            <span class="recap-mark">${answered ? (ok ? '✅' : '❌') : '•'}</span>
+            <span class="recap-name">ด่านที่ ${n + 1} · ${escapeHtml(label)}</span>
+            <button type="button" class="ghost recap-go" data-goto="${i}">${ok ? 'ดูอีกครั้ง' : 'ทบทวนข้อนี้'}</button>
+          </li>`;
+      }).join('');
+
     return `
       <div class="lesson-finish">
         <div class="finish-badge">${pass ? '🏆' : '📚'}</div>
         <h2>${escapeHtml(pass ? (f.title || 'จบบทเรียน') : 'เกือบแล้ว!')}</h2>
         <p class="lesson-score">ทำโจทย์ฝึกถูก <strong>${correct}</strong> จาก <strong>${total}</strong> ข้อ</p>
-        <p class="lesson-text">${escapeHtml(pass ? (f.text || '') : 'ลองย้อนกลับไปทบทวนกฎเหล็ก แล้วฝึกอีกรอบก็ได้นะ ไม่ต้องรีบ')}</p>
-      </div>`;
+        <p class="lesson-text">${escapeHtml(pass ? (f.text || '') : 'ลองกลับไปทบทวนข้อที่ยังไม่ถูก แล้วตอบใหม่ได้เลย ไม่ต้องรีบ')}</p>
+      </div>
+      <ul class="recap">${rows}</ul>
+      ${wrong > 0 ? `<p class="hint recap-note">กด "ทบทวนข้อนี้" เพื่อกลับไปดูวิธีทำ แล้วลองตอบใหม่ได้</p>` : ''}`;
   }
 
   // ---------- ตรรกะการตอบโจทย์ ----------
@@ -302,8 +321,25 @@
         ${ok && s.reward ? `<span class="practice-reward">🎁 ${escapeHtml(s.reward)}</span>` : ''}`;
       const box = $('#practice-options');
       if (box) [...box.children].forEach((c) => { c.disabled = true; });
+
+      // เคยตอบผิด ให้โอกาสลองใหม่หลังอ่านวิธีทำแล้ว — เรียนเพื่อให้ทำได้ ไม่ใช่เพื่อตัดสิน
+      if (!ok) {
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.className = 'retry-btn';
+        retry.textContent = '↻ ลองตอบใหม่';
+        retry.addEventListener('click', () => {
+          delete state.answers[s.key];
+          saveProgress();
+          render();
+        });
+        fb.appendChild(retry);
+      }
     }
 
+    stage.querySelectorAll('.recap-go').forEach((b) => {
+      b.addEventListener('click', () => { state.index = Number(b.dataset.goto); render(); });
+    });
     placeSpeakButton(stage);
     updateNav();
     saveProgress();
