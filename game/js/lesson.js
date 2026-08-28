@@ -22,6 +22,10 @@
   // (บางเบราว์เซอร์คืนรายชื่อเสียงช้าหรือไม่ครบ แต่จริงๆ อ่านภาษาไทยได้)
   const stopSpeaking = () => window.Speech && window.Speech.stop();
 
+  // ปุ่มอ่านให้ฟังถูกย้ายไปวางในสไลด์ ซึ่งถูกวาดใหม่ทุกครั้ง
+  // จึงต้องเก็บอ้างอิงไว้ตั้งแต่แรก ไม่งั้นค้นจาก document ไม่เจอหลังถูกถอดออก
+  let speakBtn = null;
+
   // ข้อความที่จะอ่าน ต่างกันตามชนิดสไลด์
   function speakableText(s) {
     const parts = [];
@@ -45,9 +49,9 @@
   }
 
   function speakSlide() {
-    if (!window.Speech) return;
+    if (!window.Speech || !speakBtn) return;
     const slide = state.flat[state.index];
-    const btn = $('#lesson-speak');
+    const btn = speakBtn;
     window.Speech.speak(speakableText(slide), {
       audioUrl: slide.audio ? asset(slide.audio) : null,
       button: btn,
@@ -300,9 +304,22 @@
       if (box) [...box.children].forEach((c) => { c.disabled = true; });
     }
 
+    placeSpeakButton(stage);
     updateNav();
     saveProgress();
     $('#lesson').scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+
+  // วางปุ่มอ่านให้ฟังไว้ข้างป้ายผู้บรรยาย ถ้าสไลด์ไหนไม่มีป้ายก็วางไว้บนสุด
+  function placeSpeakButton(stage) {
+    if (!speakBtn) return;
+    const head = document.createElement('div');
+    head.className = 'slide-head';
+    const chip = stage.querySelector('.lesson-speaker');
+    if (chip) { chip.replaceWith(head); head.appendChild(chip); }
+    else stage.prepend(head);
+    head.appendChild(speakBtn);
+    speakBtn.hidden = false;
   }
 
   function go(delta) {
@@ -323,8 +340,9 @@
       $('#lesson-next').addEventListener('click', () => go(1));
       $('#lesson-finish-btn').addEventListener('click', () => { stopSpeaking(); clearProgress(); onFinish(); });
       $('#lesson-skip').addEventListener('click', () => { stopSpeaking(); onFinish(); });
-      $('#lesson-speak').addEventListener('click', speakSlide);
-      $('#lesson-speak').hidden = false;
+      speakBtn = $('#lesson-speak');
+      speakBtn.remove();   // ย้ายออกจากแถบหัวเรื่อง ไปวางในสไลด์แทน
+      speakBtn.addEventListener('click', speakSlide);
 
       document.addEventListener('keydown', (e) => {
         if ($('#lesson').hidden) return;

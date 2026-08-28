@@ -671,10 +671,23 @@ body.printing .wrap { display: none; }
 .topbar { position: relative; z-index: 60; }
 
 /* ---------- ปุ่มอ่านออกเสียง ---------- */
-#lesson-speak { padding: 7px 16px; font-size: .92rem; }
-#lesson-speak.speaking {
+/* วางคู่กับป้ายผู้บรรยายในสไลด์ ใช้สีทองเต็มเพื่อให้เห็นชัดว่ากดได้ */
+.slide-head {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.slide-head .lesson-speaker { margin-bottom: 0; }
+
+#lesson-speak {
+  padding: 10px 20px; font-size: 1rem; font-weight: 600;
   background: linear-gradient(180deg, #f7cd6a, var(--gold));
-  color: #2a1c05; border-color: var(--gold-dim); font-weight: 600;
+  color: #2a1c05; border: 1px solid var(--gold-dim);
+  box-shadow: 0 2px 0 #8a5f1c, var(--glow);
+}
+#lesson-speak:hover { filter: brightness(1.08); }
+#lesson-speak.speaking {
+  background: linear-gradient(180deg, #7ee9dc, var(--arcane));
+  border-color: #2f9f93; box-shadow: 0 2px 0 #1d7d73;
 }
 #lesson-speak.speaking::after { content: ' · แตะเพื่อหยุด'; font-weight: 400; }
 .lesson-head { flex-wrap: wrap; }
