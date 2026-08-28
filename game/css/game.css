@@ -653,3 +653,17 @@ body.printing .wrap { display: none; }
   .ws-quest { margin-bottom: 16px; }
   .ws-work { min-height: 50mm; }
 }
+
+/* ---------- ปุ่มปิดการ์ด และแถบบนที่กดได้เสมอ ---------- */
+.modal { position: relative; }
+.modal-close {
+  position: absolute; top: 10px; right: 10px;
+  width: 34px; height: 34px; padding: 0; min-width: 0;
+  border-radius: 50%; font-size: 1rem; line-height: 1;
+  background: rgba(90, 60, 25, .12); color: #5c4526;
+  border: 1px solid rgba(90, 60, 25, .25); box-shadow: none;
+}
+.modal-close:hover { background: rgba(90, 60, 25, .22); }
+
+/* แถบบนลอยเหนือฉากมืดของการ์ด ปุ่มหน้าแรกจึงกดได้ตลอดแม้การ์ดเปิดค้างอยู่ */
+.topbar { position: relative; z-index: 60; }

@@ -70,6 +70,7 @@
     activeMap: null,
     busy: false,
     finished: false,
+    epoch: 0,   // เพิ่มค่าทุกครั้งที่ออกจากเกม ลำดับการเดินที่ค้างอยู่จะหยุดเอง
     setupIndex: 0, // ผู้เล่นแถวที่กำลังเลือกตัวละครอยู่
   };
 
@@ -142,11 +143,28 @@
       const el = $(sel);
       if (el) el.hidden = true;
     });
+    $('#btn-home').hidden = false;
   }
 
   function showMenu() {
     hideAllScreens();
     $('#menu').hidden = false;
+    $('#btn-home').hidden = true;
+    $('#btn-restart').hidden = true;
+    // เกมที่เล่นค้างไว้ถูกบันทึกอัตโนมัติ กลับเข้ามาเล่นต่อได้จากหน้าตั้งค่าผู้เล่น
+    if (window.Lesson) $('#menu-resume').hidden = !window.Lesson.hasProgress();
+  }
+
+  function goHome() {
+    // บันทึกเฉพาะตอนที่มีเกมเล่นค้างอยู่จริง ไม่งั้นจะเขียนเซฟเปล่าทับ
+    if (!$('#game').hidden && !state.finished) saveGame();
+    // เปลี่ยนรุ่น เพื่อให้การเดิน/การ์ดที่ค้างอยู่กลางคันหยุดและคลาย busy
+    state.epoch++;
+    state.busy = false;
+    state.reroll = false;
+    closeModal();
+    $('#btn-roll').disabled = false;
+    showMenu();
   }
 
   function setupMenu() {
@@ -204,6 +222,7 @@
     $('#menu').hidden = true;
     $('#lesson').hidden = true;
     $('#setup').hidden = true;
+    $('#btn-home').hidden = false;
     $('#intro-img').src = asset(slide.image);
     $('#intro-img').alt = slide.caption || '';
     $('#intro-caption').textContent = slide.caption || '';
@@ -430,9 +449,11 @@
 
   // ---------- การเดิน ----------
   async function walk(playerIndex, steps) {
+    const epoch = state.epoch;
     const p = state.players[playerIndex];
     const dir = steps >= 0 ? 1 : -1;
     for (let n = 0; n < Math.abs(steps); n++) {
+      if (stale(epoch)) return;
       const next = p.pos + dir;
       if (next < 0) break;
       if (next > lastIndex()) {
@@ -457,6 +478,7 @@
 
   // ---------- ผลของช่อง ----------
   async function resolveSpace(playerIndex, depth = 0) {
+    if (state.gameEpochAtStart != null && stale(state.gameEpochAtStart)) return;
     const p = state.players[playerIndex];
     const s = spaceAt(p.pos);
     if (depth > 4) return; // กันลูปไม่รู้จบจากช่องที่ส่งต่อกันเอง
@@ -570,6 +592,10 @@
 
     if (Array.isArray(card.options) && card.options.length) {
       const correct = await showQuizModal(deck, card, p);
+      if (correct === null) {   // ปิดการ์ดโดยไม่ตอบ จึงไม่ได้และไม่เสีย
+        log(`${p.name} ข้ามคำถามนี้`);
+        return;
+      }
       const outcome = correct ? card.reward : card.penalty;
       log(`${p.name} ${correct ? 'ตอบถูก' : 'ตอบผิด'}: ${card.text}`);
       await applyEffect(playerIndex, outcome, depth);
@@ -606,7 +632,30 @@
   }
 
   // ---------- โมดัล ----------
-  function closeModal() { $('#overlay').hidden = true; $('#modal').innerHTML = ''; }
+  let pendingModal = null; // ตัวคลี่คลายสัญญาของโมดัลที่เปิดค้างอยู่
+
+  function closeModal() {
+    $('#overlay').hidden = true;
+    $('#modal').innerHTML = '';
+    const resolve = pendingModal;
+    pendingModal = null;
+    if (resolve) resolve(false);
+  }
+
+  const stale = (epoch) => epoch !== state.epoch;
+
+  // ปุ่มปิดมุมขวาบนของการ์ด เพื่อให้ออกจากการ์ดได้เสมอ ไม่ติดค้างอยู่กับคำถาม
+  function addModalClose() {
+    const modal = $('#modal');
+    if (modal.querySelector('.modal-close')) return;
+    const x = document.createElement('button');
+    x.type = 'button';
+    x.className = 'modal-close';
+    x.setAttribute('aria-label', 'ปิดการ์ด');
+    x.textContent = '✕';
+    x.addEventListener('click', closeModal);
+    modal.prepend(x);
+  }
 
   function showCardModal({ title, text, color = '#2f6bd8', image, back }) {
     return new Promise((resolve) => {
@@ -618,10 +667,12 @@
         ${image ? `<img class="card-img" src="${asset(image)}" alt="">` : ''}
         ${text ? `<p>${escapeHtml(text)}</p>` : ''}
         <button type="button" id="modal-ok">ตกลง</button>`;
+      pendingModal = resolve;
+      addModalClose();
       $('#overlay').hidden = false;
       sfx('card');
       $('#modal-ok').focus();
-      $('#modal-ok').addEventListener('click', () => { closeModal(); resolve(); });
+      $('#modal-ok').addEventListener('click', () => { pendingModal = null; closeModal(); resolve(); });
     });
   }
 
@@ -682,7 +733,7 @@
         const ok = document.createElement('button');
         ok.type = 'button';
         ok.textContent = 'ตกลง';
-        ok.addEventListener('click', () => { document.removeEventListener('keydown', onKey); closeModal(); resolve(correct); });
+        ok.addEventListener('click', () => { document.removeEventListener('keydown', onKey); pendingModal = null; closeModal(); resolve(correct); });
         modal.appendChild(ok);
         ok.focus();
       }
@@ -703,6 +754,8 @@
       }
       document.addEventListener('keydown', onKey);
 
+      pendingModal = () => { document.removeEventListener('keydown', onKey); resolve(null); };
+      addModalClose();
       $('#overlay').hidden = false;
       box.firstChild.focus();
     });
@@ -756,6 +809,8 @@
 
   async function rollDice() {
     if (state.busy || state.finished) return;
+    const epoch = state.epoch;
+    state.gameEpochAtStart = epoch;
     state.busy = true;
     $('#btn-roll').disabled = true;
     const dice = $('#dice');
@@ -774,6 +829,7 @@
     await walk(state.turn, value);
     await resolveSpace(state.turn);
 
+    if (stale(epoch)) return;   // ผู้ใช้กลับหน้าแรกระหว่างตานี้
     const again = state.reroll;
     state.reroll = false;
     if (!state.finished) {
@@ -868,6 +924,7 @@
   $('#btn-restart').addEventListener('click', restart);
   $('#btn-roll').addEventListener('click', rollDice);
   $('#btn-sound').addEventListener('click', () => { setMuted(!muted); if (!muted) sfx('card'); });
+  $('#btn-home').addEventListener('click', goHome);
   $('#intro-prev').addEventListener('click', () => showIntro(introIndex - 1));
   $('#intro-next').addEventListener('click', () => {
     if (introIndex < introSlides().length - 1) showIntro(introIndex + 1);
@@ -879,6 +936,7 @@
   document.addEventListener('keydown', (e) => {
     const playing = !$('#game').hidden && $('#overlay').hidden;
     if (e.key === ' ' && playing) { e.preventDefault(); rollDice(); }
+    if (e.key === 'Escape' && !$('#overlay').hidden) { e.preventDefault(); closeModal(); }
   });
 
   boot();
