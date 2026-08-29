@@ -185,7 +185,8 @@
           "steps": "วงเล็บก่อน 406 − 387 = 19 แล้วคูณ 12 × 19 = 228",
           "reward": "พรวิเศษ: ได้สิทธิหลับในคาบคณิตศาสตร์ 5 นาที",
           "equation": "12 × (406 − 387) = ?",
-          "image": "assets/quest-1.webp"
+          "image": "assets/quest-1.webp",
+          "audio": "assets/vo-quest-1.wav"
         },
         {
           "type": "practice",
