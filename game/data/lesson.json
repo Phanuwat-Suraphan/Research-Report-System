@@ -265,7 +265,8 @@
           "steps": "คูณหารก่อน 275 × 240 = 66,000 และ 59,850 ÷ 25 = 2,394 แล้วจึงลบ 66,000 − 2,394 = 63,606",
           "reward": "พรวิเศษ: ได้สิทธิกินขนมในคาบคณิตศาสตร์ 1 ครั้ง",
           "equation": "275 × 240 − 59,850 ÷ 25 = ?",
-          "image": "assets/quest-5.webp"
+          "image": "assets/quest-5.webp",
+          "audio": "assets/vo-quest-5.wav"
         },
         {
           "type": "practice",
