@@ -42,11 +42,13 @@ story.forEach((s, i) => {
     file: `vo-story-${i + 1}`,
     title: `ฉากที่ ${i + 1} · ${s.title}`,
     note: `ผู้พูด: ${s.speaker || 'ผู้เล่าเรื่อง'}`,
-    text: spoken(s.text),
+    text: spoken(s.speak || s.text),
   });
 });
 
-if (rule) {
+if (rule && rule.speak) {
+  blocks.push({ file: 'vo-rules', title: 'กฎเหล็ก 3 ข้อ (บทย่อสำหรับฟัง)', note: 'ผู้พูด: พ่อมด — อ่านช้าๆ เน้นทีละข้อ', text: spoken(rule.speak) });
+} else if (rule) {
   const lines = [rule.title];
   // ชื่อกฎมีสัญลักษณ์ต่อท้ายไว้ให้ดูบนจอ เช่น "วงเล็บ ( )" ถ้าอ่านออกเสียงจะซ้ำกับคำ
   // ที่พูดไปแล้ว จึงตัดสัญลักษณ์ท้ายชื่อออกก่อน

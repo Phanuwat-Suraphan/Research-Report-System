@@ -27,7 +27,9 @@
   let speakBtn = null;
 
   // ข้อความที่จะอ่าน ต่างกันตามชนิดสไลด์
+  // สไลด์ไหนกำหนดฟิลด์ speak ไว้ ให้ใช้ข้อความนั้นแทน — ฟังกับอ่านต้องการความยาวไม่เท่ากัน
   function speakableText(s) {
+    if (s.speak) return s.speak;
     const parts = [];
     if (s.type === 'story') parts.push(s.title, s.text);
     else if (s.type === 'rule') {

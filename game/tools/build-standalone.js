@@ -28,12 +28,12 @@ const read = (rel) => fs.readFileSync(path.join(GAME_DIR, rel), 'utf8');
 const readJson = (rel) => JSON.parse(read(rel));
 
 let audioSaved = 0;
-function dataUri(rel) {
+function dataUri(rel, audioRate) {
   const ext = path.extname(rel).toLowerCase();
   let buf = fs.readFileSync(path.join(GAME_DIR, rel));
-  if (ext === '.wav' && AUDIO_RATE > 0) {
+  if (ext === '.wav' && audioRate > 0) {
     const before = buf.length;
-    buf = wav.downsampleBuffer(buf, AUDIO_RATE);
+    buf = wav.downsampleBuffer(buf, audioRate);
     audioSaved += before - buf.length;
   }
   return `data:${MIME[ext] || 'application/octet-stream'};base64,${buf.toString('base64')}`;
@@ -60,13 +60,17 @@ Object.values(cards.decks || {}).forEach((deck) => {
   (deck.cards || []).forEach((c) => c.image && paths.add(c.image));
 });
 
-const assets = {};
-for (const rel of paths) {
-  if (!fs.existsSync(path.join(GAME_DIR, rel))) {
-    console.warn(`ข้าม (ไม่พบไฟล์): ${rel}`);
-    continue;
+function collectAssets(audioRate) {
+  audioSaved = 0;
+  const out = {};
+  for (const rel of paths) {
+    if (!fs.existsSync(path.join(GAME_DIR, rel))) {
+      console.warn(`ข้าม (ไม่พบไฟล์): ${rel}`);
+      continue;
+    }
+    out[rel] = dataUri(rel, audioRate);
   }
-  assets[rel] = dataUri(rel);
+  return out;
 }
 
 // ตัวเกมใช้ไฟล์เดียวกับฉบับรันบนเซิร์ฟเวอร์ ต่างกันแค่แหล่งข้อมูล/รูป
@@ -84,7 +88,8 @@ const body = html.slice(html.indexOf('<body>') + 6, html.lastIndexOf('</body>'))
   .replace(/<a href="editor\.html">[\s\S]*?<\/a>/, '')
   .trim();
 
-const out = `<meta charset="utf-8">
+function buildPage(assets) {
+  return `<meta charset="utf-8">
 <title>ศึกชิงปราสาทตัวเลข</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -113,15 +118,32 @@ ${worksheetJs}
 ${js}
 </script>
 `;
+}
 
-fs.writeFileSync(OUT, out);
-const bytes = Buffer.byteLength(out);
+// เพดาน Artifact คือ 16 MB เผื่อไว้เล็กน้อยกันพลาด
+const CAP = 15.4 * 1024 * 1024;
+// ไล่จากคุณภาพดีที่สุดลงมา หยุดที่อัตราแรกที่ได้ขนาดพอดี
+const candidates = rateArg > -1 ? [AUDIO_RATE] : [16000, 12000, 11025, 10000, 8000];
+
+let chosen = null, page = null, assets = null, saved = 0;
+for (const rate of candidates) {
+  assets = collectAssets(rate);
+  page = buildPage(assets);
+  chosen = rate;
+  saved = audioSaved;
+  if (Buffer.byteLength(page) <= CAP) break;
+}
+
+fs.writeFileSync(OUT, page);
+const bytes = Buffer.byteLength(page);
 const mb = (bytes / 1024 / 1024).toFixed(2);
 console.log(`สร้าง ${OUT} แล้ว (${mb} MB, ฝังไฟล์สื่อ ${Object.keys(assets).length} ไฟล์)`);
-if (audioSaved > 0) {
-  console.log(`  ลดอัตราสุ่มเสียงเหลือ ${AUDIO_RATE} Hz ประหยัดไป ${(audioSaved / 1024 / 1024).toFixed(2)} MB`);
+if (saved > 0) {
+  console.log(`  เสียงฝังที่ ${chosen} Hz (เลือกอัตโนมัติให้พอดีเพดาน) ประหยัดไป ${(saved / 1024 / 1024).toFixed(2)} MB`);
+} else if (chosen) {
+  console.log(`  เสียงฝังที่คุณภาพเดิม ${chosen} Hz`);
 }
-if (bytes > 15 * 1024 * 1024) {
-  console.warn(`เตือน: ไฟล์ใหญ่เกิน 15 MB แล้ว ใกล้ขีดจำกัด 16 MB ของ Artifact
-  ลองลดบิตเรตไฟล์เสียง หรือแยกไฟล์เสียงออกไปไว้บนเว็บแทนการฝังในไฟล์เดียว`);
+if (bytes > CAP) {
+  console.warn(`เตือน: ยังเกิน ${(CAP / 1024 / 1024).toFixed(1)} MB แม้ลดเหลือ ${chosen} Hz แล้ว
+  ทางแก้: แยกไฟล์เสียงบางส่วนออกไปไว้บนเว็บ แทนการฝังทั้งหมดในไฟล์เดียว`);
 }
