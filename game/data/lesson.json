@@ -205,7 +205,8 @@
           "steps": "วงเล็บในสุด 670,650 ÷ 85 = 7,890 → 7,890 − 840 = 7,050 → 7,050 × 54 = 380,700",
           "reward": "พรวิเศษ: ได้รับขนม 1 ห่อจากคุณครู",
           "equation": "[(670,650 ÷ 85) − 840] × 54 = ?",
-          "image": "assets/quest-2.webp"
+          "image": "assets/quest-2.webp",
+          "audio": "assets/vo-quest-2.wav"
         },
         {
           "type": "practice",
@@ -224,7 +225,8 @@
           "steps": "ซ้ายไปขวา 532,650 − 386,540 = 146,110 แล้ว 146,110 + 89,974 = 236,084",
           "reward": "พรวิเศษ: ได้สิทธิลืมส่งการบ้านคณิตศาสตร์ 1 ครั้ง",
           "equation": "532,650 − 386,540 + 89,974 = ?",
-          "image": "assets/quest-3.webp"
+          "image": "assets/quest-3.webp",
+          "audio": "assets/vo-quest-3.wav"
         },
         {
           "type": "practice",

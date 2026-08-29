@@ -8,9 +8,15 @@
  */
 const fs = require('node:fs');
 const path = require('node:path');
+const wav = require('./wav');
 
 const GAME_DIR = path.join(__dirname, '..');
 const OUT = process.argv[2] || path.join(GAME_DIR, 'standalone.html');
+// ไฟล์เสียงใน repo เก็บที่ 16 kHz ไว้ใช้กับเว็บที่ไม่มีเพดานขนาด
+// ส่วนไฟล์เดียวจบต้องอยู่ในเพดาน 16 MB ของ Artifact จึงลดเหลือ 12 kHz
+// (ยังชัดเจนสำหรับเสียงพูด แต่เล็กลงราวหนึ่งในสี่)
+const rateArg = process.argv.indexOf('--audio-rate');
+const AUDIO_RATE = rateArg > -1 ? Number(process.argv[rateArg + 1]) : 12000;
 
 const MIME = {
   '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
@@ -21,9 +27,15 @@ const MIME = {
 const read = (rel) => fs.readFileSync(path.join(GAME_DIR, rel), 'utf8');
 const readJson = (rel) => JSON.parse(read(rel));
 
+let audioSaved = 0;
 function dataUri(rel) {
   const ext = path.extname(rel).toLowerCase();
-  const buf = fs.readFileSync(path.join(GAME_DIR, rel));
+  let buf = fs.readFileSync(path.join(GAME_DIR, rel));
+  if (ext === '.wav' && AUDIO_RATE > 0) {
+    const before = buf.length;
+    buf = wav.downsampleBuffer(buf, AUDIO_RATE);
+    audioSaved += before - buf.length;
+  }
   return `data:${MIME[ext] || 'application/octet-stream'};base64,${buf.toString('base64')}`;
 }
 
@@ -106,6 +118,9 @@ fs.writeFileSync(OUT, out);
 const bytes = Buffer.byteLength(out);
 const mb = (bytes / 1024 / 1024).toFixed(2);
 console.log(`สร้าง ${OUT} แล้ว (${mb} MB, ฝังไฟล์สื่อ ${Object.keys(assets).length} ไฟล์)`);
+if (audioSaved > 0) {
+  console.log(`  ลดอัตราสุ่มเสียงเหลือ ${AUDIO_RATE} Hz ประหยัดไป ${(audioSaved / 1024 / 1024).toFixed(2)} MB`);
+}
 if (bytes > 15 * 1024 * 1024) {
   console.warn(`เตือน: ไฟล์ใหญ่เกิน 15 MB แล้ว ใกล้ขีดจำกัด 16 MB ของ Artifact
   ลองลดบิตเรตไฟล์เสียง หรือแยกไฟล์เสียงออกไปไว้บนเว็บแทนการฝังในไฟล์เดียว`);
