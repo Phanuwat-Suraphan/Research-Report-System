@@ -740,3 +740,30 @@ body.printing .wrap { display: none; }
   background: linear-gradient(180deg, #f7cd6a, var(--gold)); color: #2a1c05;
   border: 1px solid var(--gold-dim); box-shadow: 0 2px 0 #8a5f1c;
 }
+
+/* ---------- สรุปผลหลังจบเกม ---------- */
+.results { display: grid; gap: 18px; }
+.results-head { text-align: center; display: grid; gap: 8px; justify-items: center; }
+.results-head h2 { margin: 0; }
+
+.results-players { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.results-players li {
+  display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: center;
+  padding: 12px 14px; border-radius: 12px;
+  background: rgba(26, 16, 48, .5); border: 1px solid transparent;
+}
+.results-players li.winner { border-color: var(--gold); background: rgba(239, 179, 60, .12); }
+.results-players img { width: 44px; height: 54px; object-fit: contain; }
+
+.results-missed { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.results-missed li {
+  display: grid; gap: 5px; padding: 14px 16px; border-radius: 12px;
+  background: rgba(226, 74, 63, .1); border-left: 3px solid var(--ember);
+}
+.missed-q { font-size: 1.02rem; line-height: 1.75; }
+.missed-a { font-size: 1rem; }
+.missed-a strong { color: var(--gold); font-variant-numeric: tabular-nums; }
+.missed-s { font-size: .95rem; color: var(--muted); line-height: 1.75; }
+.missed-who { font-size: .88rem; color: var(--muted); }
+.results-perfect { text-align: center; font-size: 1.05rem; }
+.results-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }

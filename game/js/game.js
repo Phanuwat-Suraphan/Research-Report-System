@@ -70,6 +70,7 @@
     activeMap: null,
     busy: false,
     finished: false,
+    answerLog: [],   // ผลการตอบระหว่างเกม ใช้สรุปตอนจบว่าใครพลาดข้อไหน
     epoch: 0,   // เพิ่มค่าทุกครั้งที่ออกจากเกม ลำดับการเดินที่ค้างอยู่จะหยุดเอง
     setupIndex: 0, // ผู้เล่นแถวที่กำลังเลือกตัวละครอยู่
   };
@@ -139,7 +140,7 @@
   // ---------- เมนูหลัก ----------
   // ครูเลือกได้ว่าจะพานักเรียนเรียนก่อน หรือข้ามไปเล่นบอร์ดเกมเลย
   function hideAllScreens() {
-    ['#menu', '#lesson', '#intro', '#setup', '#game'].forEach((sel) => {
+    ['#menu', '#lesson', '#intro', '#setup', '#game', '#results'].forEach((sel) => {
       const el = $(sel);
       if (el) el.hidden = true;
     });
@@ -596,6 +597,11 @@
         log(`${p.name} ข้ามคำถามนี้`);
         return;
       }
+      state.answerLog.push({
+        player: playerIndex, deck: deckId, cardId: card.id, correct,
+        title: card.title || '', text: card.text,
+        answerText: card.options[card.answer], steps: card.steps || '',
+      });
       const outcome = correct ? card.reward : card.penalty;
       log(`${p.name} ${correct ? 'ตอบถูก' : 'ตอบผิด'}: ${card.text}`);
       await applyEffect(playerIndex, outcome, depth);
@@ -801,6 +807,71 @@
       text: `${p.name} เดินทางถึงปราสาทตัวเลขเป็นคนแรก ด้วยคะแนนสะสม ${p.points} คะแนน!`,
       color: '#f5b70a',
     });
+    showResults(playerIndex);
+  }
+
+  // ---------- สรุปผลหลังจบเกม ----------
+  // ปิดวงจรการเรียนรู้: ข้อที่ตอบผิดระหว่างเล่นต้องได้กลับมาทบทวน ไม่ใช่หายไปในบันทึก
+  function showResults(winnerIndex) {
+    const host = $('#results');
+    const stats = state.players.map((p, i) => {
+      const mine = state.answerLog.filter((a) => a.player === i);
+      return {
+        name: p.name, points: p.points, charId: p.charId,
+        correct: mine.filter((a) => a.correct).length,
+        wrong: mine.filter((a) => !a.correct).length,
+        isWinner: i === winnerIndex,
+      };
+    });
+
+    // รวมข้อที่ผิด ถ้าซ้ำใบเดิมให้แสดงครั้งเดียวพร้อมบอกว่าใครพลาดบ้าง
+    const missedById = new Map();
+    state.answerLog.filter((a) => !a.correct).forEach((a) => {
+      const entry = missedById.get(a.cardId) || { ...a, players: [] };
+      const who = state.players[a.player].name;
+      if (!entry.players.includes(who)) entry.players.push(who);
+      missedById.set(a.cardId, entry);
+    });
+    const missed = [...missedById.values()];
+
+    host.innerHTML = `
+      <div class="results-head">
+        <div class="finish-badge">🏆</div>
+        <h2>${escapeHtml(state.players[winnerIndex].name)} ไปถึงปราสาทตัวเลขเป็นคนแรก!</h2>
+      </div>
+      <ul class="results-players">
+        ${stats.map((s) => {
+          const ch = charById(s.charId);
+          return `<li class="${s.isWinner ? 'winner' : ''}">
+            <img src="${ch ? asset(ch.image) : ''}" alt="">
+            <div>
+              <div class="pname">${escapeHtml(s.name)}${s.isWinner ? ' 👑' : ''}</div>
+              <div class="pmeta">${s.points} คะแนน · ตอบถูก ${s.correct} ข้อ · ตอบผิด ${s.wrong} ข้อ</div>
+            </div>
+          </li>`;
+        }).join('')}
+      </ul>
+      ${missed.length ? `
+        <div class="panel-title">ข้อที่ตอบผิด — ทบทวนกันก่อนเลิกเล่น</div>
+        <ul class="results-missed">
+          ${missed.map((m) => `<li>
+            <div class="missed-q">${escapeHtml(m.title ? m.title + ' — ' : '')}${escapeHtml(m.text)}</div>
+            <div class="missed-a">คำตอบ: <strong>${escapeHtml(m.answerText)}</strong></div>
+            ${m.steps ? `<div class="missed-s">วิธีทำ: ${escapeHtml(m.steps)}</div>` : ''}
+            <div class="missed-who">พลาดโดย: ${escapeHtml(m.players.join(', '))}</div>
+          </li>`).join('')}
+        </ul>`
+        : `<p class="hint results-perfect">เก่งมาก! รอบนี้ไม่มีใครตอบผิดเลยสักข้อ</p>`}
+      <div class="results-actions">
+        <button type="button" id="results-again">เล่นอีกครั้ง</button>
+        <button class="ghost" type="button" id="results-home">กลับหน้าแรก</button>
+      </div>`;
+
+    $('#game').hidden = true;
+    host.hidden = false;
+    $('#results-again').addEventListener('click', () => { host.hidden = true; restart(); });
+    $('#results-home').addEventListener('click', () => { host.hidden = true; goHome(); });
+    host.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
 
   // ---------- ลำดับตา ----------
@@ -892,6 +963,7 @@
 
   function resumeGame(data) {
     state.players = data.players.map((p) => ({ ...p, finishedAt: null }));
+    state.answerLog = [];   // เกมที่กลับมาเล่นต่อ นับผลเฉพาะรอบนี้
     state.turn = Math.min(data.turn || 0, state.players.length - 1);
     state.finished = false;
     state.activeMap = null;
@@ -909,6 +981,7 @@
   // ---------- เริ่ม / จบเกม ----------
   function startGame() {
     state.players.forEach((p) => { p.pos = 0; p.points = 0; p.skipTurns = 0; p.finishedAt = null; });
+    state.answerLog = [];
     state.turn = 0;
     state.finished = false;
     state.activeMap = null;
