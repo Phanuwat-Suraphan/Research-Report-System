@@ -36,6 +36,10 @@ jobs:
       - name: ตรวจเฉลยการ์ดโจทย์
         run: node game/tools/verify-cards.js
 
+      # กันข้อมูลที่อ้างถึงกันแล้วไม่เจอ เช่น รูปหาย เสียงหาย หรือทางลัดชี้ผิดช่อง
+      - name: ตรวจความสอดคล้องของข้อมูล
+        run: node game/tools/verify-data.js
+
       # ไฟล์เดียวจบสำหรับดาวน์โหลดไปเปิดออฟไลน์ (จะอยู่ที่ <url>/standalone.html)
       - name: สร้างไฟล์เดียวจบ
         run: node game/tools/build-standalone.js game/standalone.html
