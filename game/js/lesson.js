@@ -15,7 +15,7 @@
   const escapeHtml = (str) =>
     String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
-  const state = { data: null, flat: [], index: 0, answers: {}, onFinish: null };
+  const state = { data: null, flat: [], index: 0, answers: {}, onFinish: null, saved: false };
 
   // ---------- เสียงอ่านให้ฟัง ----------
   // ปุ่มแสดงตลอด ไม่ซ่อนตามผลตรวจเสียงในเครื่อง เพราะการตรวจไม่น่าเชื่อถือพอ
@@ -89,6 +89,49 @@
 
   function clearProgress() {
     try { localStorage.removeItem(PROGRESS_KEY); } catch { /* ไม่เป็นไร */ }
+  }
+
+  const NAME_KEY = 'ncq-last-name';
+  function lastName() {
+    try { return localStorage.getItem(NAME_KEY) || ''; } catch { return ''; }
+  }
+
+  // เก็บผลบทเรียนรอบนี้ พร้อมรายการข้อที่ยังตอบผิดอยู่ เพื่อให้ครูรู้ว่าต้องสอนซ้ำเรื่องใด
+  function bindFinish() {
+    const btn = $('#lesson-save-btn');
+    if (!btn) return;
+    // เดินออกจากหน้าสรุปแล้วกลับมาใหม่ต้องไม่บันทึกซ้ำเป็นสองรอบ
+    if (state.saved) {
+      btn.disabled = true;
+      $('#lesson-save-name').disabled = true;
+      return;
+    }
+    btn.addEventListener('click', () => {
+      const input = $('#lesson-save-name');
+      const name = input.value.trim();
+      const msg = $('#lesson-save-msg');
+      if (!name) { input.focus(); msg.textContent = 'ใส่ชื่อก่อนบันทึกนะครับ'; return; }
+      try { localStorage.setItem(NAME_KEY, name); } catch { /* ไม่เป็นไร */ }
+
+      const practice = state.flat.filter((s) => s.type === 'practice');
+      const ok = window.Records.add({
+        mode: 'lesson',
+        name,
+        correct: practice.filter((s) => state.answers[s.key] === 'correct').length,
+        total: practice.length,
+        missed: practice
+          .filter((s) => state.answers[s.key] === 'wrong')
+          .map((s) => ({ text: s.text || s.title || '', answer: (s.options || [])[s.answer] })),
+      });
+
+      state.saved = !!ok;
+      btn.textContent = ok ? '✅ บันทึกแล้ว' : 'บันทึกไม่ได้';
+      btn.disabled = true;
+      input.disabled = true;
+      msg.textContent = ok
+        ? `บันทึกผลของ ${name} แล้ว คุณครูเปิดดูได้จากหน้าแรก → บันทึกผลของนักเรียน`
+        : 'เบราว์เซอร์นี้ปิดการเก็บข้อมูลไว้ จึงบันทึกผลไม่ได้';
+    });
   }
 
   function score() {
@@ -210,7 +253,16 @@
         <p class="lesson-text">${escapeHtml(pass ? (f.text || '') : 'ลองกลับไปทบทวนข้อที่ยังไม่ถูก แล้วตอบใหม่ได้เลย ไม่ต้องรีบ')}</p>
       </div>
       <ul class="recap">${rows}</ul>
-      ${wrong > 0 ? `<p class="hint recap-note">กด "ทบทวนข้อนี้" เพื่อกลับไปดูวิธีทำ แล้วลองตอบใหม่ได้</p>` : ''}`;
+      ${wrong > 0 ? `<p class="hint recap-note">กด "ทบทวนข้อนี้" เพื่อกลับไปดูวิธีทำ แล้วลองตอบใหม่ได้</p>` : ''}
+      ${window.Records && total ? `
+        <div class="lesson-save">
+          <label for="lesson-save-name">บันทึกผลให้คุณครู</label>
+          <div class="lesson-save-row">
+            <input type="text" id="lesson-save-name" placeholder="ชื่อผู้เรียน หรือชื่อกลุ่ม" value="${escapeHtml(lastName())}">
+            <button type="button" id="lesson-save-btn">${state.saved ? '✅ บันทึกแล้ว' : 'บันทึกผล'}</button>
+          </div>
+          <p class="hint" id="lesson-save-msg">เก็บไว้ในเครื่องนี้เท่านั้น คุณครูเปิดดูได้จากหน้าแรก → บันทึกผลของนักเรียน</p>
+        </div>` : ''}`;
   }
 
   // ---------- ตรรกะการตอบโจทย์ ----------
@@ -311,7 +363,7 @@
     else if (s.type === 'rule') stage.innerHTML = renderRule(s);
     else if (s.type === 'teach') stage.innerHTML = renderTeach(s);
     else if (s.type === 'practice') { stage.innerHTML = renderPractice(s); bindPractice(s); }
-    else stage.innerHTML = renderFinish();
+    else { stage.innerHTML = renderFinish(); bindFinish(); }
 
     // เฉลยเดิมของโจทย์ที่เคยตอบไปแล้ว แสดงค้างไว้ให้ทบทวนได้
     if (s.type === 'practice' && state.answers[s.key]) {
@@ -393,6 +445,7 @@
       const saved = resume ? readProgress() : null;
       state.index = saved ? Math.min(saved.index, state.flat.length - 1) : 0;
       state.answers = saved && saved.answers ? saved.answers : {};
+      state.saved = false;
       $('#lesson').hidden = false;
       render();
     },

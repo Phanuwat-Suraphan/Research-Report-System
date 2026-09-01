@@ -78,6 +78,7 @@ const css = read('css/game.css');
 const speechJs = fs.existsSync(path.join(GAME_DIR, 'js/speech.js')) ? read('js/speech.js') : '';
 const lessonJs = read('js/lesson.js');
 const worksheetJs = fs.existsSync(path.join(GAME_DIR, 'js/worksheet.js')) ? read('js/worksheet.js') : '';
+const recordsJs = fs.existsSync(path.join(GAME_DIR, 'js/records.js')) ? read('js/records.js') : '';
 const js = read('js/game.js');
 
 // ดึงเฉพาะเนื้อหาใน <body> ของหน้าเกมมาใช้ต่อ (ตัด script/link ที่จะฝังเองด้านล่าง)
@@ -89,7 +90,8 @@ const body = html.slice(html.indexOf('<body>') + 6, html.lastIndexOf('</body>'))
   .trim();
 
 function buildPage(assets) {
-  return `<meta charset="utf-8">
+  return `<!doctype html>
+<meta charset="utf-8">
 <title>ศึกชิงปราสาทตัวเลข</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -113,6 +115,9 @@ ${lessonJs}
 </script>
 <script>
 ${worksheetJs}
+</script>
+<script>
+${recordsJs}
 </script>
 <script>
 ${js}

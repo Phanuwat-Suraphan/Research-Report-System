@@ -140,7 +140,7 @@
   // ---------- เมนูหลัก ----------
   // ครูเลือกได้ว่าจะพานักเรียนเรียนก่อน หรือข้ามไปเล่นบอร์ดเกมเลย
   function hideAllScreens() {
-    ['#menu', '#lesson', '#intro', '#setup', '#game', '#results'].forEach((sel) => {
+    ['#menu', '#lesson', '#intro', '#setup', '#game', '#results', '#records'].forEach((sel) => {
       const el = $(sel);
       if (el) el.hidden = true;
     });
@@ -201,6 +201,15 @@
       });
     } else {
       wsBtn.hidden = true;
+    }
+
+    // บันทึกผลของนักเรียน — ครูเปิดดูย้อนหลังได้ ไม่ต้องรอจบรอบ
+    const recBtn = $('#menu-records');
+    if (window.Records) {
+      recBtn.addEventListener('click', () => { hideAllScreens(); window.Records.show(); });
+      $('#records').addEventListener('records-home', goHome);
+    } else {
+      recBtn.hidden = true;
     }
     showMenu();
   }
@@ -834,6 +843,23 @@
     });
     const missed = [...missedById.values()];
 
+    // เก็บผลรอบนี้ไว้ให้ครูเปิดดูย้อนหลัง (อยู่ในเครื่องนี้เท่านั้น ไม่ส่งออกไปไหน)
+    let recorded = false;
+    if (window.Records) {
+      state.players.forEach((p, i) => {
+        const mine = state.answerLog.filter((a) => a.player === i);
+        if (!mine.length) return;   // ไม่ได้ตอบโจทย์เลยสักข้อ บันทึกไปก็ไม่มีความหมาย
+        if (window.Records.add({
+          mode: 'game',
+          name: p.name,
+          correct: mine.filter((a) => a.correct).length,
+          total: mine.length,
+          points: p.points,
+          missed: mine.filter((a) => !a.correct).map((a) => ({ text: a.text, answer: a.answerText })),
+        })) recorded = true;
+      });
+    }
+
     host.innerHTML = `
       <div class="results-head">
         <div class="finish-badge">🏆</div>
@@ -864,13 +890,18 @@
         : `<p class="hint results-perfect">เก่งมาก! รอบนี้ไม่มีใครตอบผิดเลยสักข้อ</p>`}
       <div class="results-actions">
         <button type="button" id="results-again">เล่นอีกครั้ง</button>
+        ${recorded ? '<button class="ghost" type="button" id="results-records">📊 ดูบันทึกผล</button>' : ''}
         <button class="ghost" type="button" id="results-home">กลับหน้าแรก</button>
-      </div>`;
+      </div>
+      ${recorded ? '<p class="hint">บันทึกผลรอบนี้ไว้ให้คุณครูแล้ว</p>' : ''}`;
 
     $('#game').hidden = true;
     host.hidden = false;
     $('#results-again').addEventListener('click', () => { host.hidden = true; restart(); });
     $('#results-home').addEventListener('click', () => { host.hidden = true; goHome(); });
+    if (recorded) {
+      $('#results-records').addEventListener('click', () => { hideAllScreens(); window.Records.show(); });
+    }
     host.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
 

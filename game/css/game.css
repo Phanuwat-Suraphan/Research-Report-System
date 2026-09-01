@@ -767,3 +767,66 @@ body.printing .wrap { display: none; }
 .missed-who { font-size: .88rem; color: var(--muted); }
 .results-perfect { text-align: center; font-size: 1.05rem; }
 .results-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+/* ---------- บันทึกผลสำหรับคุณครู ---------- */
+/* ตารางบนพื้นมืดอ่านยากถ้าเส้นเยอะ จึงใช้แถบสลับสีจางแทนเส้นตาราง */
+.records { display: grid; gap: 16px; }
+.records h2 { margin: 0; }
+.records-empty { text-align: center; padding: 20px 0; }
+
+.records-scroll { overflow-x: auto; border-radius: 12px; background: rgba(26, 16, 48, .5); }
+.records-table { width: 100%; border-collapse: collapse; font-size: .98rem; color: var(--ink); }
+.records-table th, .records-table td { padding: 10px 14px; text-align: left; white-space: nowrap; }
+.records-table th {
+  font-weight: 600; color: var(--gold); font-size: .9rem;
+  border-bottom: 1px solid var(--line);
+}
+.records-table tbody tr:nth-child(even) { background: rgba(47, 32, 87, .45); }
+.records-table td { font-variant-numeric: tabular-nums; }
+.records-table td:nth-child(2), .records-table th:nth-child(2) { white-space: normal; }
+/* ต่ำกว่า 60% คือสัญญาณให้ครูเข้าไปดูเป็นรายคน — ย้อมทั้งแถวให้กวาดตาเจอทันที */
+.records-table tbody tr.low { background: rgba(226, 74, 63, .16); }
+.records-table tbody tr.low td { color: #ffc9c4; }
+.records-table tbody tr.low td:first-child { box-shadow: inset 3px 0 0 var(--ember); }
+
+.records-missed { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.records-missed li {
+  display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: start;
+  padding: 14px 16px; border-radius: 12px;
+  background: rgba(226, 74, 63, .1); border-left: 3px solid var(--ember);
+}
+.miss-count {
+  display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  background: var(--ember); color: #fff; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.records-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.records-csv textarea {
+  width: 100%; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85rem;
+  padding: 10px; border-radius: 10px; border: 1px solid var(--line);
+  background: rgba(10, 6, 24, .7); color: var(--ink);
+}
+
+/* กล่องบันทึกผลท้ายบทเรียน */
+.lesson-save {
+  display: grid; gap: 8px; margin-top: 18px; padding: 16px 18px;
+  border-radius: 12px; background: rgba(87, 224, 208, .08);
+  border: 1px solid rgba(87, 224, 208, .28);
+}
+.lesson-save > label { font-weight: 600; color: var(--arcane); }
+.lesson-save-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.lesson-save-row input {
+  flex: 1 1 220px; min-width: 0; padding: 10px 14px; font-size: 1rem;
+  font-family: inherit; border-radius: 10px;
+  border: 1px solid var(--line); background: rgba(10, 6, 24, .6); color: var(--ink);
+}
+.lesson-save .hint { margin: 0; }
+
+/* ตารางในรายงานที่พิมพ์ออกกระดาษ */
+.ws-rep-title {
+  font-family: var(--font-display), serif; font-size: 1.15rem; color: #6b4d16;
+  margin: 20px 0 8px; border-bottom: 1.5px solid #b09159; padding-bottom: 4px;
+}
+.ws-table { width: 100%; border-collapse: collapse; font-size: .9rem; margin-bottom: 10px; color: #1f1a15; }
+.ws-table th, .ws-table td { border: 1px solid #8a7a5f; padding: 5px 8px; text-align: left; vertical-align: top; }
+.ws-table th { background: #f0e6d0; font-weight: 600; }
+.ws-table tr { break-inside: avoid; }
